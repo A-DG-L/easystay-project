@@ -1,37 +1,46 @@
+require('dotenv').config(); // 1. 引入环境变量
 const Koa = require('koa');
 const Router = require('koa-router');
 const bodyParser = require('koa-bodyparser');
 const cors = require('@koa/cors');
+const mongoose = require('mongoose'); // 2. 引入 mongoose
 
 const app = new Koa();
 const router = new Router();
 
-// 1. 中间件配置
-app.use(cors()); // 允许跨域
-app.use(bodyParser());
+const authRoutes = require('./routes/auth');
 
-// 2. 定义统一的 API 返回格式 
-// 我们封装一个工具函数，或者在每个接口里手动写
+// --- 数据库连接逻辑开始 ---
+const MONGO_URI = process.env.MONGO_URI;
+
+mongoose.connect(MONGO_URI)
+  .then(() => {
+    console.log('✅ 数据库连接成功！(MongoDB Atlas)');
+  })
+  .catch((err) => {
+    console.error('❌ 数据库连接失败:', err);
+  });
+// --- 数据库连接逻辑结束 ---
+
+app.use(cors());
+app.use(bodyParser());
+app.use(authRoutes.routes()).use(authRoutes.allowedMethods());
+
+// 简单的 API 规范封装
 const successResponse = (data, msg = 'success') => ({
   code: 200,
   data: data,
   msg: msg
 });
 
-const errorResponse = (code = 500, msg = 'error') => ({
-  code: code,
-  data: null,
-  msg: msg
-});
-
-// 3. 测试接口
 router.get('/', async (ctx) => {
   ctx.body = successResponse({ name: '易宿酒店API' }, '服务运行正常');
 });
 
-// 4. 启动服务
+// 注册路由
 app.use(router.routes()).use(router.allowedMethods());
 
-app.listen(3000, () => {
-  console.log('Server is running on http://localhost:3000');
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🚀 服务运行在 http://localhost:${PORT}`);
 });
