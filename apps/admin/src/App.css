@@ -18,6 +18,42 @@
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
 
+/* apps/admin/src/App.css */
+body, html, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* 通用居中容器：用于登录和注册页 */
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* 占满全屏高度 */
+  width: 100vw;  /* 占满全屏宽度 */
+  background-image: url('https://gw.alipayobjects.com/zos/rmsportal/TVYTbAXWheQpRcWDaDMu.svg'); /* 加上一个背景图，显得专业点 */
+  background-repeat: no-repeat;
+  background-position: center 110px;
+  background-size: 100%;
+  background-color: #f0f2f5; /* 浅灰底色 */
+}
+
+.auth-card {
+  width: 400px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* 加点阴影，立体感 */
+  border-radius: 8px;
+}
+
+.auth-title {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #1890ff; /* 易宿酒店的主题蓝 */
+}
+
 @keyframes logo-spin {
   from {
     transform: rotate(0deg);
