@@ -22,7 +22,7 @@ const hotelSchema = new mongoose.Schema({
   status: { 
     type: String, 
     enum: ['pending', 'published', 'offline'], 
-    default: 'pending' 
+    default: 'published' 
   },
   
   // 如果审核不通过，管理员填写的拒绝原因 [cite: 66]
