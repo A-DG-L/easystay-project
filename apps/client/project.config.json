@@ -2,7 +2,7 @@
   "miniprogramRoot": "dist/",
   "projectname": "client",
   "description": "易宿酒店移动端",
-  "appid": "wx165869cb97c9004b",
+  "appid": "wx3377e4bff5040ff8",
   "setting": {
     "urlCheck": true,
     "es6": false,
@@ -35,5 +35,10 @@
     "ignore": [],
     "include": []
   },
-  "editorSetting": {}
+  "editorSetting": {
+    "tabIndent": "insertSpaces",
+    "tabSize": 2
+  },
+  "srcMiniprogramRoot": "dist/",
+  "condition": {}
 }
