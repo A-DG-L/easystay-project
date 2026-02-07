@@ -17,6 +17,9 @@ const hotelSchema = new mongoose.Schema({
   
   // 设施 (如：免费Wifi, 停车场) - 文档中的“快捷标签” [cite: 63]
   facilities: [{ type: String }],
+
+  // 最低价格（列表页展示）
+  minPrice: { type: Number },
   
   // 状态管理：pending(审核中), published(已发布/审核通过), offline(已下线/审核不通过)
   status: { 
