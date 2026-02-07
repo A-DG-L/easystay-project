@@ -1,0 +1,310 @@
+// src/components/Calendar/index.scss
+.calendar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-end;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+  
+  .calendar-modal {
+    background: #ffffff;
+    border-radius: 30rpx 30rpx 0 0;
+    width: 100%;
+    max-height: 80vh;
+    overflow: hidden;
+    animation: slideUp 0.3s ease;
+    
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 40rpx 30rpx 30rpx;
+      border-bottom: 1rpx solid #f0f0f0;
+      
+      .header-title {
+        flex: 1;
+        
+        text {
+          display: block;
+          
+          &:first-child {
+            font-size: 34rpx;
+            font-weight: 600;
+            color: #5d6d7e;
+            margin-bottom: 10rpx;
+          }
+          
+          &.selected-info {
+            font-size: 26rpx;
+            color: #a8c6c5;
+          }
+        }
+      }
+      
+      .close-btn {
+        font-size: 40rpx;
+        color: #95a5a6;
+        width: 60rpx;
+        height: 60rpx;
+        line-height: 60rpx;
+        text-align: center;
+        
+        &:active {
+          color: #7f8c8d;
+        }
+      }
+    }
+    
+    .month-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 30rpx;
+      
+      .nav-arrow {
+        width: 60rpx;
+        height: 60rpx;
+        line-height: 60rpx;
+        text-align: center;
+        font-size: 36rpx;
+        color: #7f8c8d;
+        border-radius: 50%;
+        
+        &:active {
+          background: #f8f9f9;
+        }
+        
+        &.disabled {
+          color: #bdc3c7;
+        }
+      }
+      
+      .month-title {
+        font-size: 32rpx;
+        font-weight: 600;
+        color: #5d6d7e;
+      }
+    }
+    
+    .week-header {
+      display: flex;
+      padding: 0 30rpx 20rpx;
+      
+      .week-day {
+        flex: 1;
+        text-align: center;
+        font-size: 28rpx;
+        color: #7f8c8d;
+        
+        &.weekend {
+          color: #d4b483;
+        }
+      }
+    }
+    
+    .date-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4rpx;
+      padding: 0 30rpx 30rpx;
+      
+      .date-cell {
+        aspect-ratio: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        
+        .date-number {
+          font-size: 30rpx;
+          color: #34495e;
+          font-weight: 500;
+        }
+        
+        .today-tag {
+          position: absolute;
+          bottom: 8rpx;
+          font-size: 20rpx;
+          color: #a8c6c5;
+        }
+        
+        // 状态样式
+        &.disabled {
+          .date-number {
+            color: #bdc3c7;
+          }
+        }
+        
+        &.selectable {
+          &:active {
+            background: #f8f9f9;
+            border-radius: 10rpx;
+          }
+        }
+        
+        &.in-range {
+          background: #f0f7f7;
+          
+          &::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            background: #f0f7f7;
+            z-index: -1;
+          }
+        }
+        
+        &.start-date,
+        &.end-date {
+          background: #a8c6c5;
+          border-radius: 50%;
+          
+          .date-number {
+            color: #ffffff;
+            font-weight: 600;
+          }
+          
+          .today-tag {
+            color: #ffffff;
+          }
+        }
+        
+        &.today {
+          .date-number {
+            color: #a8c6c5;
+            font-weight: 600;
+          }
+        }
+      }
+    }
+    
+    .calendar-footer {
+      padding: 30rpx;
+      background: #f9f7f7;
+      border-top: 1rpx solid #e8e8e8;
+      position: sticky;
+      bottom: 0;
+      z-index: 10;
+      
+      .footer-selection {
+        display: flex;
+        justify-content: space-around;
+        background: #ffffff;
+        border-radius: 15rpx;
+        padding: 30rpx;
+        margin-bottom: 30rpx;
+        border: 1rpx solid #f0f0f0;
+        
+        .selection-item {
+          flex: 1;
+          text-align: center;
+          
+          .selection-label {
+            font-size: 24rpx;
+            color: #95a5a6;
+            display: block;
+            margin-bottom: 10rpx;
+          }
+          
+          .selection-date {
+            font-size: 32rpx;
+            color: #5d6d7e;
+            font-weight: 600;
+            
+            &:empty::after {
+              content: '请选择';
+              color: #bdc3c7;
+            }
+          }
+        }
+        
+        .selection-separator {
+          width: 1rpx;
+          background: #f0f0f0;
+          margin: 0 40rpx;
+        }
+      }
+      
+      .footer-buttons {
+        display: flex;
+        gap: 20rpx;
+        
+        .clear-btn,
+        .confirm-btn {
+          flex: 1;
+          height: 80rpx;
+          line-height: 80rpx;
+          text-align: center;
+          border-radius: 40rpx;
+          font-size: 30rpx;
+          font-weight: 500;
+          transition: all 0.2s ease;
+        }
+        
+        .clear-btn {
+          background: #f8f9f9;
+          color: #7f8c8d;
+          border: 1rpx solid #e0e0e0;
+          
+          &:active {
+            background: #f0f0f0;
+            transform: translateY(1rpx);
+          }
+        }
+        
+        .confirm-btn {
+          background: #bdc3c7;
+          color: #ffffff;
+          border: none;
+          
+          &.active {
+            background: #5d6d7e;
+            color: #ffffff;
+            box-shadow: 0 2rpx 8rpx rgba(93, 109, 126, 0.2);
+            
+            &:active {
+              background: #4a5665;
+              transform: translateY(1rpx);
+              box-shadow: 0 1rpx 4rpx rgba(93, 109, 126, 0.2);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+.date-warning {
+  background: #f9f7f7;        
+  border: 1rpx solid #d4b483; 
+  border-radius: 8rpx;
+  padding: 16rpx 24rpx;
+  margin: 0 30rpx 20rpx;
+  text-align: center;
+  
+  text {
+    color: #8c7853;          
+    font-size: 24rpx;
+    font-weight: 500;
+  }
+}
+
+// 动画效果
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}

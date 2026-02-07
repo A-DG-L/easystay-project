@@ -1,0 +1,28 @@
+.hotel-detail {
+  padding: 40rpx;
+  text-align: center;
+  
+  text {
+    display: block;
+    margin: 20rpx 0;
+    color: #333;
+    
+    &:first-child {
+      font-size: 36rpx;
+      font-weight: bold;
+    }
+    
+    &:nth-child(2) {
+      color: #1890ff;
+      background: #f0f8ff;
+      padding: 10rpx 20rpx;
+      border-radius: 10rpx;
+      display: inline-block;
+    }
+    
+    &:last-child {
+      color: #666;
+      font-size: 28rpx;
+    }
+  }
+}
