@@ -14,7 +14,12 @@ const router = new Router();
 const authRoutes = require('./routes/auth');
 const hotelRoutes = require('./routes/hotel');
 const roomRoutes = require('./routes/room');
-const uploadRoutes = require('./routes/upload'); // [新增] 下一步我们会创建这个文件
+const uploadRoutes = require('./routes/upload'); 
+const orderRoutes = require('./routes/orders');
+const likeRoutes = require('./routes/like');       
+const historyRoutes = require('./routes/history');
+const commentRoutes = require('./routes/comment');
+const userRoutes = require('./routes/user');
 
 const MONGO_URI = process.env.MONGO_URI;
 
@@ -41,7 +46,12 @@ app.use(serve(path.join(__dirname, 'public')));
 app.use(authRoutes.routes()).use(authRoutes.allowedMethods());
 app.use(hotelRoutes.routes()).use(hotelRoutes.allowedMethods());
 app.use(roomRoutes.routes()).use(roomRoutes.allowedMethods());
-app.use(uploadRoutes.routes()).use(uploadRoutes.allowedMethods()); // [新增]
+app.use(uploadRoutes.routes()).use(uploadRoutes.allowedMethods()); 
+app.use(orderRoutes.routes()).use(orderRoutes.allowedMethods());
+app.use(likeRoutes.routes()).use(likeRoutes.allowedMethods());       
+app.use(historyRoutes.routes()).use(historyRoutes.allowedMethods());
+app.use(commentRoutes.routes()).use(commentRoutes.allowedMethods());
+app.use(userRoutes.routes()).use(userRoutes.allowedMethods());
 
 // ... 这里的 successResponse 和 根路由保持不变 ...
 

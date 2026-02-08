@@ -2,13 +2,17 @@ const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
-  password: { type: String, required: true }, // 实际项目中应加密存储
-  // 角色区分：user(普通用户), merchant(商户), admin(管理员)
+  password: { type: String, required: true },
   role: { 
     type: String, 
     enum: ['user', 'merchant', 'admin'], 
     default: 'user' 
   },
+  // [新增] 头像字段，存储图片 URL
+  avatar: { type: String, default: '' },
+  // [新增] 昵称 (有时候 username 是账号，用户想显示别的名字)
+  nickname: { type: String },
+  
   phoneNumber: { type: String },
   createdAt: { type: Date, default: Date.now }
 });
