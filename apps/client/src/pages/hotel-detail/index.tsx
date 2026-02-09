@@ -1,5 +1,5 @@
-import { View, Text, Image, Swiper, SwiperItem, ScrollView, Button, Input, Textarea } from '@tarojs/components'
-import { useLoad, useRouter, navigateTo, showModal, showToast, navigateBack } from '@tarojs/taro'
+import { View, Text, Image, Swiper, SwiperItem, ScrollView, Button, Textarea } from '@tarojs/components'
+import { useLoad, useRouter, navigateTo, showModal, showToast, navigateBack, showActionSheet } from '@tarojs/taro'
 import { useState } from 'react'
 import Taro from '@tarojs/taro'
 import './index.scss'
@@ -19,7 +19,7 @@ interface Hotel {
   score?: number
   merchantId?: any
   rejectReason?: string
-  isLiked?: boolean // 新增字段
+  isLiked?: boolean
 }
 
 interface RoomType {
@@ -37,7 +37,7 @@ interface ApiResponse {
   msg: string
 }
 
-// 新增评论相关接口
+// 评论相关接口
 interface Comment {
   _id: string
   userId: string
@@ -60,40 +60,77 @@ interface CommentForm {
 
 // 创建本地 request 函数
 const createRequest = () => {
-  console.log('创建本地request函数');
   const BASE_URL = 'http://localhost:3000/api';
   
   return async (options: any) => {
-    const { url, method = 'GET', data } = options;
+    const { url, method = 'GET', data, needAuth = true } = options;
     const token = Taro.getStorageSync('token');
     
-    console.log('本地request调用，URL:', BASE_URL + url);
+    console.log('本地request调用，URL:', BASE_URL + url, '方法:', method);
+    
+    // 处理文件上传 - 使用 Taro.uploadFile
+    if (method === 'POST' && url === '/upload') {
+      const header: any = {};
+      if (needAuth && token) {
+        header['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+      }
+      
+      console.log('执行文件上传，文件路径:', data.filePath);
+      
+      return new Promise((resolve, reject) => {
+        Taro.uploadFile({
+          url: BASE_URL + url,
+          filePath: data.filePath,
+          name: 'file',
+          header: header,
+          success: (res) => {
+            console.log('文件上传成功:', res);
+            try {
+              const result = JSON.parse(res.data) as ApiResponse;
+              if (result.code === 200) {
+                resolve(result);
+              } else {
+                console.error('上传接口返回错误:', result);
+                reject(new Error(result.msg || '上传失败'));
+              }
+            } catch (error) {
+              console.error('解析上传响应失败:', error, '原始响应:', res.data);
+              reject(new Error('上传响应解析失败'));
+            }
+          },
+          fail: (err) => {
+            console.error('上传文件失败:', err);
+            reject(new Error('上传失败: ' + err.errMsg));
+          }
+        });
+      });
+    }
+    
+    // 普通请求
+    const header: any = {
+      'Content-Type': 'application/json'
+    };
+    
+    if (needAuth && token) {
+      header['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+    }
     
     return new Promise((resolve, reject) => {
       Taro.request({
         url: BASE_URL + url,
         method: method,
         data: data,
-        header: {
-          'Content-Type': 'application/json',
-          'Authorization': token ? token : ''
-        },
+        header: header,
         success: (res) => {
-          console.log('本地request成功，状态码:', res.statusCode);
-          console.log('响应数据:', res.data);
-          
           const response = res.data as ApiResponse;
           
           if (response.code === 200) {
             resolve(response);
           } else {
-            Taro.showToast({ title: response.msg || '请求失败', icon: 'none' });
             reject(response);
           }
         },
         fail: (err) => {
-          console.error('本地request失败:', err);
-          Taro.showToast({ title: '网络异常', icon: 'none' });
           reject(err);
         }
       });
@@ -106,6 +143,57 @@ const localRequest = createRequest();
 // 默认图片URL
 const DEFAULT_HOTEL_IMAGE = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80';
 const DEFAULT_ROOM_IMAGE = 'https://images.unsplash.com/photo-1566665797739-1674de7a421a';
+
+// 图片上传函数 - 使用您提供的接口
+const uploadImage = async (filePath: string): Promise<string> => {
+  try {
+    console.log('开始上传图片:', filePath);
+    
+    // 调用上传接口 POST /api/upload
+    const response = await localRequest({
+      url: '/upload',
+      method: 'POST',
+      data: { filePath },
+      needAuth: true
+    }) as any;
+    
+    console.log('上传接口响应:', response);
+    
+    if (response.code === 200) {
+      // 根据您提供的接口说明，返回格式为 { url: "http://.../" }
+      const imageUrl = response.data?.url || response.url;
+      if (!imageUrl) {
+        throw new Error('上传成功但未返回图片URL');
+      }
+      console.log('上传成功，图片URL:', imageUrl);
+      return imageUrl;
+    }
+    throw new Error(response.msg || '上传失败');
+  } catch (error: any) {
+    console.error('上传图片失败:', error);
+    throw new Error(error.message || '图片上传失败');
+  }
+};
+
+// 批量上传图片
+const uploadImages = async (filePaths: string[]): Promise<string[]> => {
+  const uploadedUrls: string[] = [];
+  
+  for (const filePath of filePaths) {
+    try {
+      console.log('上传第', uploadedUrls.length + 1, '张图片:', filePath);
+      const url = await uploadImage(filePath);
+      uploadedUrls.push(url);
+      console.log('图片上传成功，URL:', url);
+    } catch (error: any) {
+      console.error(`上传图片 ${filePath} 失败:`, error);
+      throw error; // 如果一张失败，整个上传就失败
+    }
+  }
+  
+  console.log('批量上传完成，成功上传', uploadedUrls.length, '张图片');
+  return uploadedUrls;
+};
 
 export default function HotelDetail() {
   const router = useRouter()
@@ -122,17 +210,16 @@ export default function HotelDetail() {
     content: '',
     rating: 5,
     images: [],
-    orderId: 'temp_order_' + Date.now() // 设置虚拟订单ID
+    orderId: ''
   })
   const [comments, setComments] = useState<Comment[]>([])
-  const [commentPage, setCommentPage] = useState(1)
-  const [hasMoreComments, setHasMoreComments] = useState(true)
   const [commentsLoading, setCommentsLoading] = useState(false)
-  const [showAllComments, setShowAllComments] = useState(false) // 新增：控制是否显示所有评论
+  const [showAllComments, setShowAllComments] = useState(false)
+  const [userOrders, setUserOrders] = useState<any[]>([])
+  const [uploadingImages, setUploadingImages] = useState(false)
 
   // 处理图片加载错误
   const handleImageError = (e: any, imageType: 'hotel' | 'room' = 'hotel') => {
-    console.log('图片加载失败:', e);
     if (imageType === 'hotel') {
       e.currentTarget.src = DEFAULT_HOTEL_IMAGE;
     } else {
@@ -173,25 +260,27 @@ export default function HotelDetail() {
     setError('')
     
     try {
-      console.log('尝试调用API，hotelId:', hotelId);
+      // 1. 首先尝试获取酒店详情（这是最重要的）
+      let hotelResponse: any;
+      try {
+        hotelResponse = await localRequest({ 
+          url: `/hotels/${hotelId}`, 
+          method: 'GET',
+          needAuth: false 
+        }) as any;
+      } catch (hotelError: any) {
+        console.error('获取酒店详情失败:', hotelError);
+        throw new Error('加载酒店信息失败，请稍后重试');
+      }
       
-      const response = await localRequest({
-        url: `/hotels/${hotelId}`,
-        method: 'GET'
-      }) as ApiResponse;
-      
-      console.log('API响应:', response);
-      
-      if (response && response.code === 200) {
-        console.log('API数据加载成功');
-        
-        const data = response.data;
+      if (hotelResponse && hotelResponse.code === 200) {
+        const data = hotelResponse.data;
         
         // 清理图片URL
         let validImages: string[] = [];
         if (data.images && Array.isArray(data.images)) {
           validImages = data.images.filter((img: string) => 
-            img && img.startsWith('http') && !img.includes('1522771753035')
+            img && img.startsWith('http')
           );
           
           if (validImages.length === 0) {
@@ -221,45 +310,109 @@ export default function HotelDetail() {
           score: data.score,
           merchantId: data.merchantId,
           rejectReason: data.rejectReason,
-          isLiked: false // 初始化为false
+          isLiked: false
         };
         
         setHotel(hotelData);
         
-        // 加载房型数据
-        await loadRooms(hotelId);
+        // 2. 立即保存到浏览记录（不等待其他请求）
+        saveCompleteHotelToHistory(hotelData);
         
-        // 检查收藏状态
-        checkLikeStatus();
+        // 3. 设置加载完成，让用户先看到页面
+        setLoading(false);
         
-        // 记录浏览足迹
-        recordViewHistory();
-        
-        // 加载评论
-        loadComments(1);
+        // 4. 并行加载其他数据（静默处理错误）
+        Promise.allSettled([
+          loadRooms(hotelId),
+          loadCommentsSilent(),
+          checkLikeStatus(),
+          recordViewHistorySilent()
+        ]).then(() => {
+          console.log('所有并行任务完成');
+        });
         
       } else {
-        console.warn('API返回非200状态');
-        setError(response?.msg || '加载酒店信息失败');
+        throw new Error('酒店信息不存在');
       }
     } catch (err: any) {
-      console.error('API请求失败:', err);
-      setError('网络异常，请稍后重试');
-    } finally {
-      console.log('加载流程结束');
+      console.error('加载酒店详情异常:', err);
+      
+      // 创建默认数据
+      const defaultHotel: Hotel = {
+        _id: hotelId,
+        name: '酒店',
+        address: '地址信息加载中...',
+        starLevel: 3,
+        description: '暂无介绍',
+        facilities: [],
+        minPrice: 0,
+        status: 'published',
+        images: [DEFAULT_HOTEL_IMAGE],
+        createdAt: new Date().toISOString(),
+        isLiked: false
+      };
+      
+      setHotel(defaultHotel);
+      saveCompleteHotelToHistory(defaultHotel);
       setLoading(false);
+    }
+  }
+
+  // 保存完整酒店信息到浏览记录
+  const saveCompleteHotelToHistory = (hotelData: Hotel) => {
+    try {
+      const history: any[] = Taro.getStorageSync('hotel_view_history') || [];
+      
+      // 移除重复的（如果有）
+      const filteredHistory = history.filter(item => item._id !== hotelData._id);
+      
+      // 添加新的记录（保存完整信息）
+      const newHistory = [{
+        _id: hotelData._id,
+        name: hotelData.name,
+        address: hotelData.address,
+        starLevel: hotelData.starLevel,
+        minPrice: hotelData.minPrice,
+        images: hotelData.images,
+        description: hotelData.description,
+        facilities: hotelData.facilities,
+        viewedAt: new Date().toISOString()
+      }, ...filteredHistory].slice(0, 50);
+      
+      Taro.setStorageSync('hotel_view_history', newHistory);
+      console.log('保存完整酒店信息到浏览记录成功:', hotelData._id, hotelData.name);
+    } catch (error) {
+      console.error('保存浏览记录失败:', error);
+    }
+  };
+
+  // 静默记录浏览足迹
+  const recordViewHistorySilent = async () => {
+    try {
+      const token = Taro.getStorageSync('token')
+      if (!token) return;
+      
+      await localRequest({
+        url: '/history',
+        method: 'POST',
+        data: { hotelId: hotelId }
+      }).catch(err => {
+        console.log('静默记录足迹失败，不影响主要功能:', err);
+      });
+      
+    } catch (error) {
+      console.log('记录浏览足迹异常，不影响主要功能:', error);
     }
   }
 
   // 加载房型数据
   const loadRooms = async (id: string) => {
     try {
-      console.log('加载房型数据，hotelId:', id);
-      
       const response = await localRequest({
         url: `/rooms?hotelId=${id}`,
-        method: 'GET'
-      }) as ApiResponse;
+        method: 'GET',
+        needAuth: false
+      }) as any;
       
       if (response && response.code === 200) {
         const roomsData = response.data || [];
@@ -278,25 +431,81 @@ export default function HotelDetail() {
     }
   }
 
-  // 新增：检查收藏状态
+  // 检查收藏状态
   const checkLikeStatus = async () => {
     try {
       const token = Taro.getStorageSync('token')
-      if (!token) return
+      if (!token) {
+        setHotel(prev => prev ? { ...prev, isLiked: false } : prev)
+        return
+      }
       
-      // 从本地收藏列表检查
-      const collections = Taro.getStorageSync('hotel_collections') || []
-      const isCollected = collections.some((item: any) => item._id === hotelId)
+      const likesResponse = await localRequest({
+        url: '/likes',
+        method: 'GET'
+      }) as any;
       
-      // 更新酒店对象的收藏状态
-      setHotel(prev => prev ? { ...prev, isLiked: isCollected } : prev)
+      if (likesResponse.code === 200) {
+        const likedHotels = likesResponse.data || []
+        const isLiked = likedHotels.some((hotel: any) => hotel._id === hotelId || hotel.hotelId === hotelId)
+        
+        setHotel(prev => prev ? { ...prev, isLiked } : prev)
+        
+        // 同时更新本地存储
+        const collections = Taro.getStorageSync('hotel_collections') || []
+        const isCollected = collections.some((item: any) => item._id === hotelId)
+        
+        if (isLiked && !isCollected && hotel) {
+          collections.unshift({
+            ...hotel,
+            collectedAt: new Date().toISOString()
+          })
+          Taro.setStorageSync('hotel_collections', collections)
+        }
+      }
       
     } catch (error) {
       console.error('检查收藏状态失败:', error)
+      const collections = Taro.getStorageSync('hotel_collections') || []
+      const isCollected = collections.some((item: any) => item._id === hotelId)
+      setHotel(prev => prev ? { ...prev, isLiked: isCollected } : prev)
     }
   }
 
-  // 新增：切换收藏状态
+  // 静默加载评论
+  const loadCommentsSilent = async () => {
+    try {
+      setCommentsLoading(true);
+      const response = await localRequest({
+        url: `/comments?hotelId=${hotelId}`,
+        method: 'GET',
+        needAuth: false
+      }) as any;
+      
+      if (response.code === 200) {
+        const commentList = response.data?.list || response.data || [];
+        const formattedComments = commentList.map((comment: any) => ({
+          _id: comment._id || comment.id,
+          userId: comment.userId,
+          username: comment.username || comment.user?.username || '用户',
+          avatar: comment.avatar || comment.user?.avatar || 'https://via.placeholder.com/40',
+          orderId: comment.orderId,
+          content: comment.content,
+          rating: comment.rating,
+          images: comment.images || [],
+          createdAt: comment.createdAt || comment.createdTime,
+          hotelId: comment.hotelId
+        }));
+        setComments(formattedComments);
+      }
+    } catch (error) {
+      console.log('加载评论失败，不影响主要功能');
+    } finally {
+      setCommentsLoading(false);
+    }
+  };
+
+  // 切换收藏状态
   const toggleLike = async () => {
     try {
       const token = Taro.getStorageSync('token')
@@ -311,44 +520,42 @@ export default function HotelDetail() {
         return
       }
       
-      // 使用虚拟数据 - 直接切换状态
-      const isLiked = !hotel?.isLiked
+      if (!hotel) return;
       
-      // 更新酒店对象的收藏状态
-      setHotel(prev => prev ? { ...prev, isLiked } : prev)
+      // 调用收藏接口
+      const response = await localRequest({
+        url: '/likes/toggle',
+        method: 'POST',
+        data: { hotelId: hotelId }
+      }) as any;
       
-      // 更新本地存储
-      const collections = Taro.getStorageSync('hotel_collections') || []
-      
-      if (isLiked) {
-        // 添加到收藏
-        const hotelInfo = hotel || {
-          _id: hotelId,
-          name: '酒店',
-          address: '',
-          starLevel: 0,
-          minPrice: 0,
-          images: [],
-          description: '',
-          facilities: []
+      if (response.code === 200) {
+        const isLiked = response.data.isLiked
+        
+        setHotel(prev => prev ? { ...prev, isLiked } : prev)
+        
+        // 更新本地存储
+        const collections = Taro.getStorageSync('hotel_collections') || []
+        
+        if (isLiked) {
+          // 添加到收藏
+          collections.unshift({
+            ...hotel,
+            collectedAt: new Date().toISOString()
+          })
+          Taro.setStorageSync('hotel_collections', collections)
+        } else {
+          // 移除收藏
+          const newCollections = collections.filter((item: any) => item._id !== hotelId)
+          Taro.setStorageSync('hotel_collections', newCollections)
         }
         
-        collections.unshift({
-          ...hotelInfo,
-          collectedAt: new Date().toISOString()
+        showToast({
+          title: isLiked ? '已收藏' : '已取消收藏',
+          icon: 'success',
+          duration: 1500
         })
-        Taro.setStorageSync('hotel_collections', collections)
-      } else {
-        // 移除收藏
-        const newCollections = collections.filter((item: any) => item._id !== hotelId)
-        Taro.setStorageSync('hotel_collections', newCollections)
       }
-      
-      showToast({
-        title: isLiked ? '已收藏' : '已取消收藏',
-        icon: 'success',
-        duration: 1500
-      })
       
     } catch (error: any) {
       console.error('切换收藏失败:', error)
@@ -360,155 +567,46 @@ export default function HotelDetail() {
     }
   }
 
-  // 新增：记录浏览足迹
-  const recordViewHistory = async () => {
+  // 获取用户可评论的订单
+  const loadUserOrders = async () => {
     try {
       const token = Taro.getStorageSync('token')
-      if (!token) return
-      
-      console.log('记录浏览足迹（虚拟）:', hotelId)
-      
-      // 更新本地存储
-      const history = Taro.getStorageSync('hotel_view_history') || []
-      const hotelInfo = hotel || {
-        _id: hotelId,
-        name: '酒店',
-        address: '',
-        starLevel: 0,
-        minPrice: 0,
-        images: [],
-        description: '',
-        facilities: []
+      if (!token) {
+        setUserOrders([])
+        return
       }
       
-      const updatedHistory = [
-        { ...hotelInfo, viewedAt: new Date().toISOString() },
-        ...history.filter((item: any) => item._id !== hotelId)
-      ].slice(0, 50)
+      const response = await localRequest({
+        url: '/orders',
+        method: 'GET'
+      }) as any;
       
-      Taro.setStorageSync('hotel_view_history', updatedHistory)
+      if (response.code === 200) {
+        const orders = response.data || []
+        
+        // 过滤出已支付或已完成且属于当前酒店的订单
+        const commentableOrders = orders.filter((order: any) => {
+          return (order.status === 'paid' || order.status === 'completed') && 
+                 order.hotelId === hotelId
+        });
+        
+        setUserOrders(commentableOrders)
+        
+        if (commentableOrders.length > 0) {
+          setCommentForm(prev => ({
+            ...prev,
+            orderId: commentableOrders[0]._id
+          }))
+        }
+      }
     } catch (error) {
-      console.error('记录浏览足迹失败:', error)
+      console.error('获取用户订单失败:', error)
+      setUserOrders([])
     }
   }
 
-  // 新增：加载评论列表
-  const loadComments = async (page = 1) => {
-    try {
-      if (page === 1) {
-        setCommentsLoading(true)
-      }
-      
-      // 使用虚拟评论数据
-      const mockComments = [
-        {
-          _id: '1',
-          userId: 'user1',
-          username: '张三',
-          avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=40&h=40&fit=crop',
-          orderId: 'order1',
-          content: '酒店环境很好，服务态度也很棒！房间干净整洁，下次还会再来。',
-          rating: 5,
-          createdAt: new Date().toISOString()
-        },
-        {
-          _id: '2',
-          userId: 'user2',
-          username: '李四',
-          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop',
-          orderId: 'order2',
-          content: '性价比很高，早餐种类丰富。位置也很方便，离地铁站很近。',
-          rating: 4,
-          createdAt: new Date(Date.now() - 86400000).toISOString()
-        },
-        {
-          _id: '3',
-          userId: 'user3',
-          username: '王五',
-          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=40&h=40&fit=crop',
-          orderId: 'order3',
-          content: '设施齐全，游泳池很干净。就是晚上有点吵，其他都很好。',
-          rating: 3,
-          createdAt: new Date(Date.now() - 172800000).toISOString()
-        },
-        {
-          _id: '4',
-          userId: 'user4',
-          username: '赵六',
-          avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=40&h=40&fit=crop',
-          orderId: 'order4',
-          content: '房间隔音效果很好，床很舒服，一觉睡到天亮。',
-          rating: 5,
-          createdAt: new Date(Date.now() - 259200000).toISOString()
-        },
-        {
-          _id: '5',
-          userId: 'user5',
-          username: '钱七',
-          avatar: 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=40&h=40&fit=crop',
-          orderId: 'order5',
-          content: '前台服务很热情，办理入住很快。房间打扫得很干净。',
-          rating: 4,
-          createdAt: new Date(Date.now() - 345600000).toISOString()
-        },
-        {
-          _id: '6',
-          userId: 'user6',
-          username: '孙八',
-          avatar: 'https://images.unsplash.com/photo-1507591064344-4c6ce005-128?w=40&h=40&fit=crop',
-          orderId: 'order6',
-          content: '地理位置优越，周边有很多美食店。性价比很高。',
-          rating: 4,
-          createdAt: new Date(Date.now() - 432000000).toISOString()
-        }
-      ];
-      
-      // 如果是第一页，设置虚拟数据
-      if (page === 1) {
-        setComments(mockComments)
-      } else {
-        // 如果是加载更多，可以添加更多虚拟数据
-        const moreMockComments = [
-          {
-            _id: '7',
-            userId: 'user7',
-            username: '周九',
-            avatar: 'https://images.unsplash.com/photo-1520813792240-56fc4a3765a7?w=40&h=40&fit=crop',
-            orderId: 'order7',
-            content: '停车场很大，停车很方便。适合自驾游的旅客。',
-            rating: 5,
-            createdAt: new Date(Date.now() - 518400000).toISOString()
-          }
-        ];
-        setComments(prev => [...prev, ...moreMockComments])
-      }
-      
-      setHasMoreComments(page < 2) // 模拟有更多数据
-      setCommentPage(page)
-      
-    } catch (error) {
-      console.error('加载评论失败:', error)
-      // 即使出错也显示虚拟数据
-      const fallbackComments = [
-        {
-          _id: 'fallback1',
-          userId: 'fallback1',
-          username: '虚拟用户',
-          avatar: '',
-          orderId: 'order1',
-          content: '这是虚拟评论数据，用于测试显示效果。',
-          rating: 4,
-          createdAt: new Date().toISOString()
-        }
-      ];
-      setComments(fallbackComments)
-    } finally {
-      setCommentsLoading(false)
-    }
-  }
-
-  // 新增：显示评论弹窗
-  const showCommentDialog = () => {
+  // 显示评论弹窗
+  const showCommentDialog = async () => {
     const token = Taro.getStorageSync('token')
     if (!token) {
       showModal({
@@ -520,10 +618,119 @@ export default function HotelDetail() {
       })
       return
     }
-    setShowCommentModal(true)
+    
+    // 加载用户可评论的订单
+    await loadUserOrders();
+    
+    if (userOrders.length === 0) {
+      showModal({
+        title: '提示',
+        content: '您还没有可以评论的订单。需要先预订并完成入住才能发表评价。',
+        showCancel: false
+      })
+      return
+    }
+    
+    if (userOrders.length === 1) {
+      setShowCommentModal(true)
+    } else {
+      showActionSheet({
+        itemList: userOrders.map((order: any) => `订单 ${order.orderNumber || order._id.slice(-8)}`),
+        success: (res) => {
+          const selectedOrder = userOrders[res.tapIndex]
+          setCommentForm(prev => ({
+            ...prev,
+            orderId: selectedOrder._id
+          }))
+          setShowCommentModal(true)
+        }
+      })
+    }
   }
 
-  // 新增：提交评论
+  // 处理图片上传 - 使用您提供的接口
+  const handleImageUpload = async () => {
+    try {
+      const maxCount = 3 - commentForm.images.length;
+      if (maxCount <= 0) {
+        showToast({
+          title: '最多只能上传3张图片',
+          icon: 'none',
+          duration: 1500
+        })
+        return
+      }
+      
+      const res = await Taro.chooseImage({
+        count: maxCount,
+        sizeType: ['compressed'],
+        sourceType: ['album', 'camera']
+      })
+      
+      if (res.tempFilePaths.length > 0) {
+        setUploadingImages(true);
+        showToast({
+          title: '图片上传中...',
+          icon: 'loading',
+          duration: 3000
+        });
+        
+        try {
+          // 调用批量上传函数，使用您提供的 /api/upload 接口
+          console.log('开始批量上传图片:', res.tempFilePaths);
+          const uploadedUrls = await uploadImages(res.tempFilePaths);
+          
+          if (uploadedUrls.length > 0) {
+            setCommentForm(prev => ({
+              ...prev,
+              images: [...prev.images, ...uploadedUrls]
+            }));
+            
+            showToast({
+              title: `成功上传 ${uploadedUrls.length} 张图片`,
+              icon: 'success',
+              duration: 1500
+            });
+          } else {
+            showToast({
+              title: '图片上传失败',
+              icon: 'none',
+              duration: 1500
+            });
+          }
+        } catch (error: any) {
+          console.error('图片上传失败:', error);
+          showToast({
+            title: error.message || '图片上传失败',
+            icon: 'none',
+            duration: 2000
+          });
+        } finally {
+          setUploadingImages(false);
+        }
+      }
+    } catch (error) {
+      console.error('选择图片失败:', error);
+      setUploadingImages(false);
+      showToast({
+        title: '选择图片失败',
+        icon: 'none',
+        duration: 1500
+      });
+    }
+  }
+
+  // 删除已选择的图片
+  const removeImage = (index: number) => {
+    const newImages = [...commentForm.images];
+    newImages.splice(index, 1);
+    setCommentForm(prev => ({
+      ...prev,
+      images: newImages
+    }));
+  };
+
+  // 提交评论
   const submitComment = async () => {
     if (!commentForm.content.trim()) {
       showToast({
@@ -534,37 +741,54 @@ export default function HotelDetail() {
       return
     }
     
-    try {
-      // 使用虚拟数据
+    if (!commentForm.orderId) {
       showToast({
-        title: '评论成功（虚拟）',
-        icon: 'success',
+        title: '请选择要评论的订单',
+        icon: 'none',
         duration: 1500
       })
-      
-      // 添加虚拟评论到列表
-      const newComment = {
-        _id: 'temp_' + Date.now(),
-        userId: 'currentUser',
-        username: '当前用户',
-        avatar: '',
-        orderId: commentForm.orderId || 'temp_order',
-        content: commentForm.content,
-        rating: commentForm.rating,
-        images: commentForm.images,
-        createdAt: new Date().toISOString()
-      }
-      
-      setComments(prev => [newComment, ...prev])
-      
-      setShowCommentModal(false)
-      setCommentForm({
-        content: '',
-        rating: 5,
-        images: [],
-        orderId: 'temp_order_' + Date.now() // 重置为新的虚拟订单ID
+      return
+    }
+    
+    if (uploadingImages) {
+      showToast({
+        title: '图片上传中，请稍后',
+        icon: 'none',
+        duration: 1500
       })
+      return
+    }
+    
+    try {
+      const response = await localRequest({
+        url: '/comments',
+        method: 'POST',
+        data: {
+          orderId: commentForm.orderId,
+          content: commentForm.content,
+          rating: commentForm.rating,
+          images: commentForm.images
+        }
+      }) as any;
       
+      if (response.code === 200) {
+        showToast({
+          title: '评论成功',
+          icon: 'success',
+          duration: 1500
+        })
+        
+        // 刷新评论列表
+        loadCommentsSilent()
+        
+        setShowCommentModal(false)
+        setCommentForm({
+          content: '',
+          rating: 5,
+          images: [],
+          orderId: ''
+        })
+      }
     } catch (error: any) {
       console.error('提交评论失败:', error)
       showToast({
@@ -575,7 +799,7 @@ export default function HotelDetail() {
     }
   }
 
-  // 新增：渲染评论星级
+  // 渲染评论星级
   const renderRatingStars = (rating: number, interactive = false) => {
     return (
       <View className="rating-stars">
@@ -592,27 +816,10 @@ export default function HotelDetail() {
     )
   }
 
-  // 新增：格式化时间
-  const formatTime = (timeString: string) => {
-    try {
-      const date = new Date(timeString)
-      const month = date.getMonth() + 1
-      const day = date.getDate()
-      return `${month}月${day}日`
-    } catch {
-      return '未知时间'
-    }
-  }
-
-  // 新增：切换显示所有评论
-  const toggleShowAllComments = () => {
-    setShowAllComments(!showAllComments)
-  }
-
   useLoad(() => {
     console.log('酒店详情页面加载，酒店ID:', hotelId);
     
-    if (hotelId && hotelId.length > 10) {
+    if (hotelId) {
       loadHotelDetail();
     } else {
       setError('无效的酒店ID')
@@ -672,14 +879,10 @@ export default function HotelDetail() {
     )
   }
 
-  console.log('渲染酒店详情，hotel:', hotel);
-
-  // 确定要显示的评论列表
   const displayComments = showAllComments ? comments : comments.slice(0, 3)
 
   return (
     <View className='hotel-detail-container'>
-      {/* 图片轮播区域 */}
       <View className='carousel-section'>
         {hotel.images && hotel.images.length > 0 ? (
           <Swiper
@@ -735,7 +938,6 @@ export default function HotelDetail() {
           </View>
         )}
         
-        {/* 添加收藏按钮 */}
         <View className='like-button-container'>
           <Button 
             className={`like-button ${hotel?.isLiked ? 'liked' : ''}`}
@@ -749,7 +951,6 @@ export default function HotelDetail() {
 
       <ScrollView className='hotel-content' scrollY>
         <View className='hotel-info'>
-          {/* 酒店基本信息 */}
           <View className='hotel-header'>
             <View className='hotel-title-section'>
               <View className='hotel-name-row'>
@@ -778,13 +979,11 @@ export default function HotelDetail() {
             )}
           </View>
 
-          {/* 酒店描述 */}
           <View className='description-section'>
             <Text className='section-title'>酒店介绍</Text>
             <Text className='description-text'>{hotel.description}</Text>
           </View>
 
-          {/* 酒店设施 */}
           {hotel.facilities && hotel.facilities.length > 0 && (
             <View className='facilities-section'>
               <Text className='section-title'>酒店设施</Text>
@@ -798,7 +997,6 @@ export default function HotelDetail() {
             </View>
           )}
 
-          {/* 新增：评论区域 */}
           <View className='comments-section'>
             <View className='section-header'>
               <Text className='section-title'>用户评价 ({comments.length})</Text>
@@ -811,7 +1009,11 @@ export default function HotelDetail() {
               </Button>
             </View>
             
-            {comments.length > 0 ? (
+            {commentsLoading ? (
+              <View className='comments-loading'>
+                <Text className='loading-text'>加载评论中...</Text>
+              </View>
+            ) : comments.length > 0 ? (
               <View className='comments-list'>
                 {displayComments.map((comment) => (
                   <View key={comment._id} className='comment-item'>
@@ -819,13 +1021,15 @@ export default function HotelDetail() {
                       <Image 
                         className='comment-avatar' 
                         src={comment.avatar || 'https://via.placeholder.com/40'}
+                        onError={(e: any) => {
+                         e.currentTarget.src = 'https://via.placeholder.com/40'
+                        }}
                       />
                       <View className='comment-user'>
                         <Text className='comment-username'>{comment.username}</Text>
-                        <View className='comment-rating'>
-                          {renderRatingStars(comment.rating)}
-                          <Text className='comment-time'>{formatTime(comment.createdAt)}</Text>
-                        </View>
+                        <Text className='comment-time'>
+                          {new Date(comment.createdAt).toLocaleDateString()}
+                        </Text>
                       </View>
                     </View>
                     <Text className='comment-content'>{comment.content}</Text>
@@ -837,6 +1041,9 @@ export default function HotelDetail() {
                             className='comment-image'
                             src={img}
                             mode='aspectFill'
+                            onError={(e: any) => {
+                              e.currentTarget.src = DEFAULT_HOTEL_IMAGE
+                            }}
                           />
                         ))}
                       </View>
@@ -847,7 +1054,7 @@ export default function HotelDetail() {
                 {comments.length > 3 && (
                   <Button 
                     className={`view-all-comments-btn ${showAllComments ? 'active' : ''}`}
-                    onClick={toggleShowAllComments}
+                    onClick={() => setShowAllComments(!showAllComments)}
                   >
                     {showAllComments ? `收起评论` : `查看全部评论 (${comments.length})`}
                   </Button>
@@ -855,12 +1062,11 @@ export default function HotelDetail() {
               </View>
             ) : (
               <View className='no-comments'>
-                <Text className='no-comments-text'>暂无评价，快来发表第一条评价吧！</Text>
+                <Text className='no-comments-text'>暂无评价</Text>
               </View>
             )}
           </View>
 
-          {/* 房型列表 */}
           {rooms.length > 0 ? (
             <View className='rooms-section'>
               <View className='section-header'>
@@ -898,9 +1104,8 @@ export default function HotelDetail() {
                         className='book-room-button'
                         size='mini'
                         onClick={() => {
-                          showToast({
-                            title: '预订功能开发中',
-                            icon: 'none'
+                          navigateTo({
+                            url: `/pages/booking/index?hotelId=${hotelId}&roomId=${room._id}`
                           })
                         }}
                       >
@@ -918,15 +1123,20 @@ export default function HotelDetail() {
             </View>
           )}
 
-          {/* 操作按钮 */}
           <View className='action-buttons'>
             <Button 
               className='book-button'
               onClick={() => {
-                showToast({
-                  title: '预订功能开发中',
-                  icon: 'none'
-                })
+                if (rooms.length > 0) {
+                  navigateTo({
+                    url: `/pages/booking/index?hotelId=${hotelId}&roomId=${rooms[0]._id}`
+                  })
+                } else {
+                  showToast({
+                    title: '暂无可用房型',
+                    icon: 'none'
+                  })
+                }
               }}
             >
               立即预订
@@ -976,18 +1186,53 @@ export default function HotelDetail() {
                 autoHeight
               />
               
+              <View className='image-upload-section'>
+                <Button 
+                  className='upload-image-btn'
+                  onClick={handleImageUpload}
+                  disabled={uploadingImages || commentForm.images.length >= 3}
+                >
+                  {uploadingImages ? '上传中...' : '+ 添加图片'}
+                </Button>
+                
+                {/* 显示已选择的图片 */}
+                {commentForm.images.length > 0 && (
+                  <View className='selected-images'>
+                    {commentForm.images.map((img, index) => (
+                      <View key={index} className='selected-image-item'>
+                        <Image 
+                          className='selected-image'
+                          src={img}
+                          mode='aspectFill'
+                        />
+                        <Button 
+                          className='remove-image-btn'
+                          onClick={() => removeImage(index)}
+                        >
+                          ✕
+                        </Button>
+                      </View>
+                    ))}
+                  </View>
+                )}
+                
+                <Text className='image-tips'>最多可上传3张图片</Text>
+              </View>
+              
               <View className='modal-actions'>
                 <Button 
                   className='cancel-btn'
                   onClick={() => setShowCommentModal(false)}
+                  disabled={uploadingImages}
                 >
                   取消
                 </Button>
                 <Button 
                   className='submit-btn'
                   onClick={submitComment}
+                  disabled={uploadingImages || !commentForm.content.trim()}
                 >
-                  提交
+                  {uploadingImages ? '上传中...' : '提交'}
                 </Button>
               </View>
             </View>

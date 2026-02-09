@@ -9,6 +9,8 @@ export default defineAppConfig({
     'pages/order/index',       //底部导航栏（订单）
     'pages/likes-history/index',    //底部导航栏（喜欢，浏览记录）
     'pages/my/index',     //底部导航栏（我的）
+    'pages/edit/index',   //修改个人信息
+    'pages/change-pwd/index',   //修改密码
   ],
   window: {
     backgroundTextStyle: 'light',
