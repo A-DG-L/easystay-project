@@ -36,7 +36,7 @@ router.get('/profile', authMiddleware, async (ctx) => {
         id: user._id,
         username: user.username,
         nickname: user.nickname || user.username, // 如果没昵称就显示用户名
-        avatar: user.avatar || 'https://default-avatar-url.com/avatar.png', // 默认头像
+        avatar: user.avatar || '', // 默认头像
         role: user.role
       },
       // 仪表盘统计数据
@@ -66,7 +66,10 @@ router.post('/update', authMiddleware, async (ctx) => {
 
     const updateData = {};
     if (avatar) updateData.avatar = avatar;
-    if (nickname) updateData.nickname = nickname;
+    if (nickname) {
+      if (nickname.length > 20) return ctx.body = errorResponse(400, '昵称太长了');
+      updateData.nickname = nickname;
+      }
 
     const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true }).select('-password');
 

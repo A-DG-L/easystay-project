@@ -1,50 +1,47 @@
 const Router = require('koa-router');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User'); // 引入我们在上一步建立的模型
+const User = require('../models/User'); 
 
-const router = new Router({ prefix: '/api/auth' }); // 所有接口都有 /api/auth 前缀
+const router = new Router({ prefix: '/api/auth' });
 
-// 辅助函数：统一返回格式
 const successResponse = (data, msg = 'success') => ({ code: 200, data, msg });
 const errorResponse = (code = 400, msg = 'error') => ({ code, data: null, msg });
 
 /**
  * @route POST /api/auth/register
  * @desc 用户/商户注册
+ * [优化]：允许注册时直接传入 nickname 或 phoneNumber
  */
 router.post('/register', async (ctx) => {
   try {
-    const { username, password, role } = ctx.request.body;
+    // 接收更多参数
+    const { username, password, role, nickname, phoneNumber } = ctx.request.body;
 
-    // 1. 校验必填
     if (!username || !password) {
-      ctx.body = errorResponse(400, '用户名和密码不能为空');
-      return;
+      return ctx.body = errorResponse(400, '用户名和密码不能为空');
     }
 
-    // 2. 检查用户名是否已存在
     const existingUser = await User.findOne({ username });
     if (existingUser) {
-      ctx.body = errorResponse(400, '用户名已存在');
-      return;
+      return ctx.body = errorResponse(400, '用户名已存在');
     }
 
-    // 3. 密码加密 (加盐)
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // 4. 创建新用户
     const newUser = new User({
       username,
-      password: hashedPassword, // 存入加密后的密码
-      role: role || 'user'      // 默认为普通用户
+      password: hashedPassword,
+      role: role || 'user',
+      // [新增] 如果前端传了就存，没传就由 User 模型给默认值或空
+      nickname: nickname || '', 
+      phoneNumber: phoneNumber || '',
+      avatar: '' // 注册时默认无头像，或设置一个默认图片URL
     });
 
-    // 5. 保存到 MongoDB
     const savedUser = await newUser.save();
 
-    // 返回成功信息 (不返回密码)
     ctx.body = successResponse({
       id: savedUser._id,
       username: savedUser.username,
@@ -60,6 +57,7 @@ router.post('/register', async (ctx) => {
 /**
  * @route POST /api/auth/login
  * @desc 用户登录
+ * [关键修改]：返回 avatar 和 nickname
  */
 router.post('/login', async (ctx) => {
   try {
@@ -68,27 +66,29 @@ router.post('/login', async (ctx) => {
     // 1. 查找用户
     const user = await User.findOne({ username });
     if (!user) {
-      ctx.body = errorResponse(400, '用户不存在');
-      return;
+      return ctx.body = errorResponse(400, '用户不存在');
     }
 
-    // 2. 验证密码 (将输入的密码与数据库的密文对比)
+    // 2. 验证密码
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      ctx.body = errorResponse(400, '密码错误');
-      return;
+      return ctx.body = errorResponse(400, '密码错误');
     }
 
-    // 3. 生成 Token (包含用户ID和角色信息)
+    // 3. 签发 Token
     const payload = { id: user._id, role: user.role };
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' }); // 7天过期
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
 
+    // 4. 返回完整信息 [这里是你要改的核心]
     ctx.body = successResponse({
-      token: 'Bearer ' + token, // 前端通常需要 Bearer 前缀
+      token: 'Bearer ' + token,
       user: {
         id: user._id,
         username: user.username,
-        role: user.role
+        role: user.role,
+        // [新增] 返回这两个字段，前端拿到后直接存入 LocalStorage 或全局状态
+        nickname: user.nickname || user.username, // 如果没有昵称，默认显示用户名
+        avatar: user.avatar || ''                 // 如果没有头像，返回空字符串让前端显示默认图
       }
     }, '登录成功');
 
