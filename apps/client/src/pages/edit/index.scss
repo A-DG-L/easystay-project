@@ -1,0 +1,171 @@
+.edit-profile-container {
+  min-height: 100vh;
+  background: #F8F9FA;
+  padding: 30rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-container {
+  background: white;
+  border-radius: 20rpx;
+  padding: 0 30rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 4rpx 16rpx rgba(93, 109, 126, 0.1);
+  border: 1rpx solid #D5DBDB;
+}
+
+.avatar-section, .input-section, .info-section {
+  padding: 40rpx 0;
+  border-bottom: 1rpx solid #D5DBDB;
+}
+
+.avatar-section:last-child, .input-section:last-child, .info-section:last-child {
+  border-bottom: none;
+}
+
+.section-label {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #5D6D7E;
+  margin-bottom: 20rpx;
+  display: block;
+}
+
+.avatar-edit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.avatar-preview {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  border: 2rpx solid #F39C12;
+}
+
+.change-avatar-btn {
+  background: #F8F9FA;
+  color: #5D6D7E;
+  border: 2rpx solid #D5DBDB;
+  border-radius: 12rpx;
+  padding: 12rpx 24rpx;
+  font-size: 26rpx;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.change-avatar-btn::after {
+  border: none;
+}
+
+.change-avatar-btn:active {
+  background: #E8E9EA;
+  transform: scale(0.98);
+  border-color: #AEB6BF;
+}
+
+.change-avatar-btn[disabled] {
+  background: #ECF0F1;
+  color: #BDC3C7;
+  border-color: #ECF0F1;
+}
+
+.nickname-input {
+  background: #F8F9FA;
+  border: 2rpx solid #D5DBDB;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  font-size: 28rpx;
+  color: #5D6D7E;
+  transition: all 0.3s ease;
+}
+
+.nickname-input:focus {
+  border-color: #F39C12;
+  background: white;
+}
+
+.placeholder {
+  color: #95A5A6;
+  font-size: 28rpx;
+}
+
+.info-value {
+  font-size: 28rpx;
+  color: #5D6D7E;
+  margin-bottom: 10rpx;
+  display: block;
+  font-weight: 500;
+}
+
+.info-hint {
+  font-size: 24rpx;
+  color: #95A5A6;
+  display: block;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 20rpx;
+  margin-top: auto;
+}
+
+.cancel-btn, .save-btn {
+  flex: 1;
+  border-radius: 12rpx;
+  font-size: 30rpx;
+  font-weight: 500;
+  padding: 24rpx;
+  border: 2rpx solid transparent;
+  transition: all 0.3s ease;
+}
+
+.cancel-btn {
+  background: #F8F9FA;
+  color: #5D6D7E;
+  border-color: #D5DBDB;
+}
+
+.cancel-btn::after {
+  border: none;
+}
+
+.cancel-btn:active {
+  background: #E8E9EA;
+  transform: scale(0.98);
+}
+
+.save-btn {
+  background: #F39C12;
+  color: white;
+  border: none;
+}
+
+.save-btn::after {
+  border: none;
+}
+
+.save-btn:active {
+  background: #E67E22;
+  transform: scale(0.98);
+}
+
+.save-btn[disabled] {
+  background: #ECF0F1;
+  color: #BDC3C7;
+}
+
+.loading-container {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F8F9FA;
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #7F8C8D;
+}

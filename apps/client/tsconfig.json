@@ -24,8 +24,7 @@
     },
     "baseUrl": ".",
     "lib": ["es2017", "dom"],
-    // 🔥 关键修改：移除 types 中的 @tarojs 相关项
-    "types": []  // 改为空数组或只保留 ["node"]
+    "types": ["node"]  
   },
   "include": [
     "./src/**/*",
