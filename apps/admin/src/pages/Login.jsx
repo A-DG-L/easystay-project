@@ -30,7 +30,9 @@ const Login = () => {
         // user     -> 报错 (普通用户应该去手机端)
         switch (user.role) {
           case 'merchant':
-            navigate('/dashboard'); // 暂时都去 dashboard，后面可以拆分
+            //navigate('/dashboard'); // 暂时都去 dashboard，后面可以拆分
+            navigate('/hotel/list');
+           
             break;
           case 'admin':
             navigate('/dashboard'); // 暂时都去 dashboard

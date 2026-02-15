@@ -48,6 +48,72 @@ router.post('/', authMiddleware, isMerchant, async (ctx) => {
 });
 
 /**
+ * @route PUT /api/rooms/:id
+ * @desc [商户] 更新房型信息
+ */
+router.put('/:id', authMiddleware, isMerchant, async (ctx) => {
+  try {
+    const { id } = ctx.params;
+    const updateData = ctx.request.body;
+
+    // 先找到房型
+    const room = await Room.findById(id).populate('hotelId');
+    if (!room) {
+      return ctx.body = errorResponse(404, '房型不存在');
+    }
+
+    // 检查酒店归属权
+    const hotel = await Hotel.findOne({ 
+      _id: room.hotelId._id, 
+      merchantId: ctx.state.user.id 
+    });
+    
+    if (!hotel) {
+      return ctx.body = errorResponse(403, '无权操作此房型');
+    }
+
+    const updatedRoom = await Room.findByIdAndUpdate(id, updateData, { new: true });
+    ctx.body = successResponse(updatedRoom, '更新成功');
+  } catch (err) {
+    console.error(err);
+    ctx.body = errorResponse(500, '更新失败');
+  }
+});
+
+/**
+ * @route DELETE /api/rooms/:id
+ * @desc [商户] 删除房型
+ */
+router.delete('/:id', authMiddleware, isMerchant, async (ctx) => {
+  try {
+    const { id } = ctx.params;
+
+    // 先找到房型
+    const room = await Room.findById(id).populate('hotelId');
+    if (!room) {
+      return ctx.body = errorResponse(404, '房型不存在');
+    }
+
+    // 检查酒店归属权
+    const hotel = await Hotel.findOne({ 
+      _id: room.hotelId._id, 
+      merchantId: ctx.state.user.id 
+    });
+    
+    if (!hotel) {
+      return ctx.body = errorResponse(403, '无权操作此房型');
+    }
+
+    await Room.findByIdAndDelete(id);
+    ctx.body = successResponse(null, '删除成功');
+  } catch (err) {
+    console.error(err);
+    ctx.body = errorResponse(500, '删除失败');
+  }
+});
+
+
+/**
  * @route GET /api/rooms
  * @desc [用户/通用] 获取某酒店的所有房型列表
  * @cite source: 113

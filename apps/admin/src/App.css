@@ -76,3 +76,9 @@ body, html, #root {
 .read-the-docs {
   color: #888;
 }
+
+
+.app-content {
+  padding: 0; 
+ 
+}

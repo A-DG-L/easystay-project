@@ -2,7 +2,7 @@
   "miniprogramRoot": "dist/",
   "projectname": "client",
   "description": "易宿酒店移动端",
-  "appid": "wx165869cb97c9004b",
+  "appid": "wx2f09246d2861b24c",
   "setting": {
     "urlCheck": true,
     "es6": false,
@@ -35,5 +35,6 @@
     "ignore": [],
     "include": []
   },
-  "editorSetting": {}
+  "editorSetting": {},
+  "libVersion": "3.14.1"
 }
