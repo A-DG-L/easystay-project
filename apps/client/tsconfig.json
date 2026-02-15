@@ -28,9 +28,9 @@
   },
   "include": [
     "./src/**/*",
-    "./types/**/*",
+    "./types/global.d.ts",
     "./config/**/*",
-    "./global.d.ts"  // 添加这个
+    "./global.d.ts"
   ],
   "exclude": ["node_modules", "dist"],
   "compileOnSave": false

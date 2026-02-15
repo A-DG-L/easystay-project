@@ -51,6 +51,22 @@ router.get('/my-hotels', authMiddleware, isMerchant, async (ctx) => {
 });
 
 /**
+ * @route GET /api/hotels/pending
+ * @desc [管理员] 获取所有待审核的酒店
+ * 注意：必须放在 router.get('/') 之前，否则会被 / 路由捕获
+ */
+router.get('/pending', authMiddleware, isAdmin, async (ctx) => {
+  try {
+    // 只查询 status 为 pending 的酒店
+    const hotels = await Hotel.find({ status: 'pending' })
+      .sort({ createdAt: 1 }); // 按申请时间正序排列（先申请的先审）
+    ctx.body = successResponse(hotels);
+  } catch (err) {
+    ctx.body = errorResponse(500, '获取待审核列表失败');
+  }
+});
+
+/**
  * @route GET /api/hotels
  * @desc [用户] 酒店列表/搜索 (支持分页、关键词、星级筛选)
  * @cite source: 113

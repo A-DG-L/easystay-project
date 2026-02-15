@@ -1,11 +1,15 @@
+/* apps/admin/src/index.css */
+
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  /* 使用系统默认字体，清晰易读 */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  /* 核心修改 1: 强制设为浅色背景 (Ant Design 风格) */
+  color-scheme: light; 
+  color: #333333; /* 文字颜色改回深灰，而不是白色 */
+  background-color: #f0f2f5; /* 经典的后台浅灰底色 */
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -13,56 +17,20 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
+  /* 核心修改 2: 移除 display: flex 和 place-items: center */
+  /* 让页面恢复默认的“从上到下”文档流布局 */
+  width: 100%;
   min-height: 100vh;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
+/* 移除原来针对 h1, button 的默认样式，
+   因为 Ant Design 组件库会接管这些样式，
+   保留原来的会造成样式冲突 */
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+#root {
+  /* 确保根容器也是满宽的 */
+  width: 100%;
+  height: 100%;
 }
