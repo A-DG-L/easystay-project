@@ -109,6 +109,61 @@ router.get('/', async (ctx) => {
   }
 });
 
+
+/**
+ * @route PUT /api/hotels/:id
+ * @desc [商户] 更新酒店信息
+ */
+router.put('/:id', authMiddleware, isMerchant, async (ctx) => {
+  try {
+    const { id } = ctx.params;
+    const merchantId = ctx.state.user.id;
+    const updateData = ctx.request.body;
+
+    // 检查酒店归属权
+    const hotel = await Hotel.findOne({ _id: id, merchantId });
+    if (!hotel) {
+      return ctx.body = errorResponse(403, '无权操作此酒店');
+    }
+
+    const updatedHotel = await Hotel.findByIdAndUpdate(
+      id,
+      { ...updateData, merchantId }, // 保持merchantId不变
+      { new: true }
+    );
+
+    ctx.body = successResponse(updatedHotel, '更新成功');
+  } catch (err) {
+    console.error(err);
+    ctx.body = errorResponse(500, '更新失败');
+  }
+});
+
+/**
+ * @route DELETE /api/hotels/:id
+ * @desc [商户] 删除酒店
+ */
+router.delete('/:id', authMiddleware, isMerchant, async (ctx) => {
+  try {
+    const { id } = ctx.params;
+    const merchantId = ctx.state.user.id;
+
+    // 检查酒店归属权
+    const hotel = await Hotel.findOne({ _id: id, merchantId });
+    if (!hotel) {
+      return ctx.body = errorResponse(403, '无权操作此酒店');
+    }
+
+    await Hotel.findByIdAndDelete(id);
+    ctx.body = successResponse(null, '删除成功');
+  } catch (err) {
+    console.error(err);
+    ctx.body = errorResponse(500, '删除失败');
+  }
+});
+
+
+
 /**
  * @route GET /api/hotels/:id
  * @desc [用户/通用] 获取酒店详情
