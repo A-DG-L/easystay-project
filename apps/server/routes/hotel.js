@@ -14,7 +14,12 @@ const errorResponse = (code = 400, msg = 'error') => ({ code, data: null, msg })
  */
 router.post('/', authMiddleware, isMerchant, async (ctx) => {
   try {
-    const { name, address, starLevel, description, facilities, images } = ctx.request.body;
+    //const { name, address, starLevel, description, facilities, images } = ctx.request.body;
+    // 建议修改为：
+    const { 
+      name, address, starLevel, openingTime, 
+      description, facilities, images, minPrice, score ,rejectReason
+    } = ctx.request.body;
     const merchantId = ctx.state.user.id; // 从 Token 获取商户ID
 
     const newHotel = new Hotel({
@@ -24,8 +29,12 @@ router.post('/', authMiddleware, isMerchant, async (ctx) => {
       starLevel,
       description,
       facilities,
+      minPrice,
       images,
-      status: 'pending' // 默认为审核中 [cite: 36]
+      openingTime,
+      status: 'pending', // 默认为审核中 [cite: 36]
+      rejectReason,
+      score
     });
 
     const savedHotel = await newHotel.save();

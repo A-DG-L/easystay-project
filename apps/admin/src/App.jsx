@@ -7,6 +7,12 @@ import Audit from './pages/Audit';
 import BasicLayout from './layouts/BasicLayout'; // 假设你已经创建了这个文件
 import './App.css';
 
+import HotelPublish from './pages/Hotel/HotelPublish';
+import HotelList from './pages/Hotel/HotelList';
+
+import RoomList from './pages/Hotel/RoomList';
+import { HomeOutlined, PlusOutlined } from '@ant-design/icons';
+
 // 简单的路由守卫
 const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem('token');
@@ -17,7 +23,8 @@ const PrivateRoute = ({ children }) => {
 const RoleRedirect = () => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   if (user.role === 'admin') return <Navigate to="/audit" replace />;
-  if (user.role === 'merchant') return <div>商户后台开发中...</div>; // 后续替换为商户首页
+  //if (user.role === 'merchant') return <div>商户后台开发中...</div>; // 后续替换为商户首页
+  if (user.role === 'merchant') return <Navigate to="/hotel/list" replace />; 
   return <Navigate to="/login" replace />;
 };
 
@@ -48,6 +55,10 @@ function App() {
           
           {/* 以后添加商户页面可以直接加在这里，例如： */}
           {/* <Route path="my-hotels" element={<MyHotels />} /> */}
+          <Route path="/hotel/publish" element={<HotelPublish />} />
+          <Route path="/hotel/list" element={<HotelList />} />
+          <Route path="/hotel/:hotelId/rooms" element={<RoomList />} />
+          
         </Route>
         {/* --- 核心修改结束 --- */}
 

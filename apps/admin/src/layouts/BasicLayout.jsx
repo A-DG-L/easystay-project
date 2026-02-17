@@ -42,7 +42,7 @@ const BasicLayout = () => {
             },
             // 未来这里可以加 '商户管理'、'订单管理' 等
             {
-              key: '/hotel-list', // 假设以后有这个
+              key: '/hotel/list', // 假设以后有这个
               icon: <UserOutlined />,
               label: '我的酒店(商户)',
             },
