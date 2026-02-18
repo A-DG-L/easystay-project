@@ -49,7 +49,7 @@ export default function TabBar() {
         onClick={() => handleTabClick('favorite')}
       >
         <View className='tab-icon'>❤️</View>
-        <Text className='tab-text'>收藏</Text>
+        <Text className='tab-text'>收藏/历史</Text>
       </View>
       
       <View 

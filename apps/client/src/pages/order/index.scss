@@ -1,0 +1,345 @@
+// pages/order/index.scss
+.order-container {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  padding-bottom: 20px;
+}
+
+.order-tabs {
+  display: flex;
+  background-color: #fff;
+  padding: 20px 0;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .tab-item {
+    flex: 0 0 auto;
+    padding: 0 30px;
+    font-size: 28px;
+    color: #666;
+    position: relative;
+    
+    &.active {
+      color: #ff6600;
+      font-weight: bold;
+      
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: -20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 40px;
+        height: 4px;
+        background-color: #ff6600;
+        border-radius: 2px;
+      }
+    }
+  }
+}
+
+.order-list {
+  padding: 0 20px;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 0;
+  
+  .empty-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+    opacity: 0.3;
+  }
+  
+  .empty-text {
+    font-size: 28px;
+    color: #999;
+  }
+}
+
+.order-card {
+  background-color: #fff;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.hotel-header {
+  display: flex;
+  align-items: center;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eee;
+  
+  .hotel-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 8px;
+    margin-right: 20px;
+  }
+  
+  .hotel-info {
+    flex: 1;
+    
+    .hotel-name {
+      font-size: 32px;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 8px;
+      display: block;
+    }
+    
+    .room-name {
+      font-size: 28px;
+      color: #666;
+      margin-bottom: 8px;
+      display: block;
+    }
+    
+    .order-time {
+      font-size: 24px;
+      color: #999;
+      display: block;
+    }
+  }
+  
+  .order-status {
+    .status-badge {
+      font-size: 24px;
+      padding: 6px 16px;
+      border-radius: 20px;
+      background-color: #f5f5f5;
+      color: #666;
+      
+      /* 待支付状态 - 橙色 */
+      &.pending {
+        background-color: #fff3e0;
+        color: #ff9800;
+      }
+      
+      /* 待使用/已支付状态 - 绿色 */
+      &.paid {
+        background-color: #e8f5e8;
+        color: #4caf50;
+      }
+      
+      /* 待评价状态 - 蓝色 */
+      &.completed {
+        background-color: #e3f2fd;
+        color: #2196f3;
+      }
+      
+      /* 已评价状态 - 紫色 */
+      &.reviewed {
+        background-color: #f3e5f5;
+        color: #9c27b0;
+      }
+      
+      /* 已取消状态 - 红色 */
+      &.cancelled {
+        background-color: #ffebee;
+        color: #f44336;
+      }
+      
+      /* 未知状态 - 灰色 */
+      &.unknown {
+        background-color: #f5f5f5;
+        color: #999;
+      }
+    }
+  }
+}
+
+.order-detail {
+  padding: 20px 0;
+  
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 26px;
+    
+    .label {
+      color: #999;
+    }
+    
+    .value {
+      color: #333;
+    }
+    
+    &.total {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px dashed #eee;
+      
+      .price {
+        color: #ff6600;
+        font-size: 32px;
+        font-weight: bold;
+      }
+    }
+  }
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+  
+  button {
+    min-width: 160px;
+    height: 60px;
+    line-height: 60px;
+    font-size: 26px;
+    border-radius: 30px;
+    margin: 0;
+    padding: 0 20px;
+    
+    &::after {
+      border: none;
+    }
+    
+    /* 禁用状态 */
+    &[disabled] {
+      opacity: 0.6;
+    }
+  }
+  
+  /* 取消订单按钮 - 灰色 */
+  .cancel-btn {
+    background-color: #f5f5f5;
+    color: #666;
+    border: 1px solid #ddd;
+  }
+  
+  /* 立即支付按钮 - 橙色 */
+  .pay-btn {
+    background-color: #ff6600;
+    color: #fff;
+  }
+  
+  /* 确认使用按钮 - 绿色 */
+  .use-btn {
+    background-color: #4caf50;
+    color: #fff;
+  }
+  
+  /* 我要评价按钮 - 蓝色 */
+  .review-btn {
+    background-color: #2196f3;
+    color: #fff;
+  }
+  
+  /* 已评价按钮 - 灰色禁用 */
+  .reviewed-btn {
+    background-color: #f5f5f5;
+    color: #999;
+    border: 1px solid #ddd;
+  }
+  
+  /* 重新预订按钮 - 橙色 */
+  .rebook-btn {
+    background-color: #ff6600;
+    color: #fff;
+  }
+  
+  /* 当只有一个按钮时 */
+  button:only-child {
+    min-width: 200px;
+  }
+}
+
+/* 适配不同屏幕尺寸 */
+@media screen and (max-width: 320px) {
+  .action-buttons {
+    button {
+      min-width: 140px;
+      font-size: 24px;
+    }
+  }
+}
+
+/* 订单卡片点击效果 */
+.order-card {
+  transition: all 0.2s ease;
+  
+  &:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+}
+
+/* 酒店信息点击效果 */
+.hotel-header {
+  cursor: pointer;
+  
+  &:active {
+    opacity: 0.7;
+  }
+}
+
+/* 按钮点击效果 */
+.action-buttons button {
+  transition: all 0.2s ease;
+  
+  &:active {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  
+  /* 防止按钮点击时影响卡片点击 */
+  pointer-events: auto;
+}
+
+/* 标签页滚动条隐藏（兼容各种浏览器） */
+.order-tabs {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  
+  &::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+}
+
+/* 加载状态动画 */
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.loading {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* 空状态图标动画 */
+.empty-icon {
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}

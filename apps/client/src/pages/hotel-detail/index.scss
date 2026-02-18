@@ -639,10 +639,6 @@
   gap: 8rpx;
 }
 
-.bed-icon {
-  font-size: 22rpx;
-}
-
 .room-bed {
   font-size: 24rpx;
   color: #666;
@@ -663,7 +659,7 @@
   opacity: 0.8;
 }
 
-/* 评论弹窗样式 */
+/* 评论弹窗样式 - 完全重构 */
 .comment-modal {
   position: fixed;
   top: 0;
@@ -675,143 +671,272 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  
-  .comment-modal-content {
-    background: white;
-    border-radius: 16rpx;
-    width: 90%;
-    max-height: 80vh;
-    overflow: hidden;
-  }
-  
-  .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 30rpx;
-    border-bottom: 1rpx solid #f0f0f0;
-    
-    .modal-title {
-      font-size: 32rpx;
-      font-weight: 500;
-    }
-    
-    .close-modal-btn {
-      background: none;
-      border: none;
-      color: #999;
-      font-size: 36rpx;
-      padding: 0;
-    }
-  }
-  
-  .modal-body {
-    padding: 30rpx;
-  }
-}
-
-.rating-selector {
-  display: flex;
-  align-items: center;
-  margin-bottom: 30rpx;
-  
-  .rating-label {
-    font-size: 28rpx;
-    margin-right: 20rpx;
-  }
-}
-
-.comment-input {
-  width: 100%;
-  min-height: 200rpx;
-  border: 1rpx solid #d9d9d9;
-  border-radius: 8rpx;
-  padding: 20rpx;
-  font-size: 28rpx;
-  margin-bottom: 30rpx;
+  padding: 30rpx;
   box-sizing: border-box;
 }
 
-.image-upload-section {
-  margin-bottom: 30rpx;
+.comment-modal-content {
+  width: 100%;
+  max-width: 650rpx;
+  max-height: 80vh;
+  background-color: #fff;
+  border-radius: 24rpx;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+  padding: 30rpx 30rpx 20rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2rpx solid #f0f0f0;
+  flex-shrink: 0;
+}
+
+.modal-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.close-modal-btn {
+  width: 48rpx;
+  height: 48rpx;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f5f5;
+  border-radius: 8rpx;
+  font-size: 40rpx;
+  color: #666;
+  line-height: 1;
+  border: none;
   
-  .upload-image-btn {
-    background: #f5f5f5;
-    color: #666;
+  &::after {
     border: none;
-    border-radius: 8rpx;
-    padding: 15rpx 20rpx;
-    font-size: 26rpx;
-    margin-right: 20rpx;
   }
   
-  .image-count-text {
-    font-size: 24rpx;
-    color: #999;
+  &:active {
+    background-color: #e0e0e0;
   }
 }
 
-.modal-actions {
+.modal-body {
+  padding: 30rpx;
+  flex: 1;
+  overflow-y: auto;
   display: flex;
-  justify-content: flex-end;
-  gap: 20rpx;
+  flex-direction: column;
+  gap: 30rpx;
+}
+
+/* 评分选择器 */
+.rating-selector {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0;
+}
+
+.rating-label {
+  font-size: 28rpx;
+  color: #333;
+  margin-right: 20rpx;
+  white-space: nowrap;
+}
+
+.rating-stars {
+  display: flex;
+  gap: 12rpx;
+}
+
+.rating-star {
+  font-size: 48rpx;
+  color: #ddd;
+  transition: all 0.2s;
   
-  .cancel-btn,
-  .submit-btn {
-    padding: 0 40rpx;
-    height: 70rpx;
-    line-height: 70rpx;
-    font-size: 28rpx;
-    border-radius: 8rpx;
+  &.active {
+    color: #ff8c42;
+  }
+}
+
+/* 评论输入框 */
+.comment-input {
+  width: 100%;
+  min-height: 200rpx;
+  padding: 24rpx;
+  background-color: #f8f8f8;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  color: #333;
+  border: 2rpx solid #f0f0f0;
+  box-sizing: border-box;
+  
+  &:focus {
+    border-color: #ff8c42;
+    background-color: #fff;
+  }
+}
+
+/* 图片上传区域 */
+.image-upload-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.upload-image-btn {
+  width: 160rpx;
+  height: 160rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f8f8;
+  border: 2rpx dashed #ddd;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  color: #666;
+  padding: 0;
+  
+  &::after {
     border: none;
   }
   
-  .cancel-btn {
-    background: #f5f5f5;
-    color: #666;
+  &:active {
+    background-color: #f0f0f0;
   }
   
-  .submit-btn {
-    background: #1890ff;
-    color: white;
+  &[disabled] {
+    opacity: 0.6;
+  }
+}
+
+.selected-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx;
+  margin-top: 10rpx;
+}
+
+.selected-image-item {
+  position: relative;
+  width: 160rpx;
+  height: 160rpx;
+}
+
+.selected-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 12rpx;
+  object-fit: cover;
+  border: 2rpx solid #f0f0f0;
+}
+
+.remove-image-btn {
+  position: absolute;
+  top: -10rpx;
+  right: -10rpx;
+  width: 40rpx;
+  height: 40rpx;
+  min-width: 40rpx;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 20rpx;
+  font-size: 32rpx;
+  color: #fff;
+  border: 2rpx solid #fff;
+  
+  &::after {
+    border: none;
+  }
+  
+  &:active {
+    background-color: rgba(0, 0, 0, 0.8);
+  }
+}
+
+.image-tips {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 10rpx;
+}
+
+/* 底部按钮区域 */
+.modal-actions {
+  display: flex;
+  gap: 20rpx;
+  padding: 30rpx;
+  border-top: 2rpx solid #f0f0f0;
+  background-color: #fff;
+  flex-shrink: 0;
+}
+
+.cancel-btn,
+.submit-btn {
+  flex: 1;
+  height: 80rpx;
+  line-height: 80rpx;
+  text-align: center;
+  font-size: 30rpx;
+  border-radius: 40rpx;
+  padding: 0;
+  border: none;
+  
+  &::after {
+    border: none;
+  }
+}
+
+.cancel-btn {
+  background-color: #f5f5f5;
+  color: #666;
+  
+  &:active {
+    background-color: #e8e8e8;
+  }
+}
+
+.submit-btn {
+  background: linear-gradient(135deg, #ff6b00, #ff8c00);
+  color: #fff;
+  
+  &:active {
+    opacity: 0.9;
+  }
+  
+  &[disabled] {
+    background: #ffb380;
   }
 }
 
 /* 底部操作按钮 */
 .action-buttons {
-  display: flex;
-  gap: 20rpx;
   padding: 20rpx 0;
 }
 
-.book-button {
-  flex: 2;
-  background: linear-gradient(135deg, #ff6b00, #ff8c00);
+.contact-button {
+  width: 100%;
+  background: linear-gradient(135deg, #ff8c00, #ff6b00);
   color: #fff;
   border: none;
   border-radius: 40rpx;
   font-size: 28rpx;
   height: 80rpx;
   line-height: 80rpx;
-}
-
-.contact-button {
-  flex: 1;
-  background: #f0f0f0;
-  color: #666;
-  border: none;
-  border-radius: 40rpx;
-  font-size: 28rpx;
-  height: 80rpx;
-  line-height: 80rpx;
-}
-
-.book-button:active {
-  opacity: 0.8;
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 0, 0.2);
 }
 
 .contact-button:active {
-  background: #e0e0e0;
+  background: linear-gradient(135deg, #ff6b00, #ff5500);
+  opacity: 0.9;
+  transform: scale(0.98);
 }
 
 /* 加载状态 */
@@ -944,5 +1069,9 @@
   
   .facility-name {
     font-size: 22rpx;
+  }
+  
+  .comment-modal-content {
+    max-width: 90%;
   }
 }

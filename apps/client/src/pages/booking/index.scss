@@ -1,0 +1,243 @@
+// index.scss
+.booking-container {
+  min-height: 100vh;
+  background-color: #fff;
+  padding-bottom: 100px;
+}
+
+// 通用章节样式
+.hotel-section,
+.room-section,
+.date-section,
+.room-count-section,
+.guest-section,
+.total-section {
+  background-color: #fff;
+  margin-top: 12px;
+  padding: 24px 30px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.section-title {
+  font-size: 32px;
+  font-weight: 600;
+  color: #333;
+  display: block;
+  margin-bottom: 20px;
+  position: relative;
+  padding-left: 16px;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 28px;
+    background-color: #ff6600;
+    border-radius: 2px;
+  }
+}
+
+// 酒店信息
+.hotel-name {
+  font-size: 36px;
+  font-weight: 600;
+  color: #333;
+}
+
+// 房型信息
+.room-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.room-name {
+  font-size: 32px;
+  color: #333;
+}
+
+.room-price {
+  font-size: 36px;
+  color: #ff6600;
+  font-weight: 600;
+  
+  &::before {
+    content: '¥';
+    font-size: 28px;
+    margin-right: 2px;
+  }
+}
+
+// 日期选择
+.date-picker {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.picker-item {
+  flex: 1;
+  padding: 20px 16px;
+  background-color: #fafafa;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.picker-label {
+  font-size: 26px;
+  color: #999;
+  margin-bottom: 8px;
+}
+
+.picker-value {
+  font-size: 30px;
+  color: #333;
+}
+
+.nights-hint {
+  display: block;
+  margin-top: 16px;
+  font-size: 26px;
+  color: #ff6600;
+  text-align: right;
+}
+
+// 房间数量选择
+.count-picker {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background-color: #fafafa;
+  border-radius: 8px;
+}
+
+.count-label {
+  font-size: 32px;
+  color: #333;
+}
+
+.picker-arrow {
+  font-size: 32px;
+  color: #999;
+}
+
+// 入住人表单
+.guest-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.guest-input {
+  padding: 22px 24px;
+  background-color: #fafafa;
+  border-radius: 8px;
+  font-size: 30px;
+  color: #333;
+  
+  &::placeholder {
+    color: #ccc;
+    font-size: 28px;
+  }
+}
+
+// 价格总计
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.total-label {
+  font-size: 32px;
+  color: #333;
+  font-weight: 600;
+}
+
+.total-price {
+  font-size: 48px;
+  color: #ff6600;
+  font-weight: 700;
+  
+  &::before {
+    content: '¥';
+    font-size: 36px;
+    margin-right: 4px;
+  }
+}
+
+// 提交按钮区域
+.action-buttons {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20px 30px 30px;
+  background-color: #fff;
+  border-top: 1px solid #f0f0f0;
+  z-index: 100;
+}
+
+.submit-btn {
+  width: 100%;
+  height: 88px;
+  line-height: 88px;
+  background-color: #ff6600;
+  color: #fff;
+  font-size: 34px;
+  font-weight: 600;
+  border-radius: 44px;
+  
+  &::after {
+    border: none;
+  }
+  
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+// 加载状态
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  
+  &::after {
+    content: '';
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f0f0f0;
+    border-top-color: #ff6600;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// 响应式适配
+@media screen and (min-width: 768px) {
+  .booking-container {
+    max-width: 750px;
+    margin: 0 auto;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+  }
+  
+  .action-buttons {
+    max-width: 750px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}

@@ -449,7 +449,7 @@ export default function Index() {
                         />
                       )}
                       
-                      {/* 广告标签 - 放在最外层，z-index最高 */}
+                      {/* 广告标签 */}
                       <View className='ad-label'>
                         <Text className='ad-text'>推荐</Text>
                       </View>

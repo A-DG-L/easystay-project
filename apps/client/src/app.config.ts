@@ -11,6 +11,8 @@ export default defineAppConfig({
     'pages/my/index',     //底部导航栏（我的）
     'pages/edit/index',   //修改个人信息
     'pages/change-pwd/index',   //修改密码
+    'pages/booking/index',    //预订页面
+    'pages/my-comments/index'    //我的评论页面
   ],
   window: {
     backgroundTextStyle: 'light',
