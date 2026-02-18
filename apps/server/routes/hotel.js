@@ -66,11 +66,14 @@ router.get('/my-hotels', authMiddleware, isMerchant, async (ctx) => {
  */
 router.get('/pending', authMiddleware, isAdmin, async (ctx) => {
   try {
-    // 只查询 status 为 pending 的酒店
+    // 建议修改：按 _id 排序 (MongoDB的_id包含时间戳) 或者按 openingTime
+    // 如果你的 Schema 里配置了 timestamps: true，那么 createdAt 会自动生成，否则建议改用 _id
     const hotels = await Hotel.find({ status: 'pending' })
-      .sort({ createdAt: 1 }); // 按申请时间正序排列（先申请的先审）
+      .sort({ _id: -1 }); // -1 为倒序(最新的在前面)，1 为正序
+      
     ctx.body = successResponse(hotels);
   } catch (err) {
+    console.error(err); // 加上 console.error 方便在服务端控制台看报错
     ctx.body = errorResponse(500, '获取待审核列表失败');
   }
 });
@@ -191,21 +194,27 @@ router.get('/:id', async (ctx) => {
 /**
  * @route PATCH /api/hotels/:id/status
  * @desc [管理员] 审核酒店 (通过/拒绝/下线)
- * @cite source: 116
  */
 router.patch('/:id/status', authMiddleware, isAdmin, async (ctx) => {
   try {
     const { status, rejectReason } = ctx.request.body;
     
-    // 校验状态值
-    if (!['published', 'offline', 'pending'].includes(status)) {
-      return ctx.body = errorResponse(400, '无效的状态值');
+    // 1. 修改这里：把 'rejected' 加入允许的列表
+    const allowedStatuses = ['published', 'offline', 'pending', 'rejected'];
+    
+    if (!allowedStatuses.includes(status)) {
+      return ctx.body = errorResponse(400, '无效的状态值'); // 这里就是你遇到的报错
     }
 
     const updateData = { status };
-    if (status === 'offline' && rejectReason) {
+
+    // 2. 修改这里：如果是 'offline' 或者 'rejected'，都允许保存拒绝/下线理由
+    if ((status === 'offline' || status === 'rejected') && rejectReason) {
       updateData.rejectReason = rejectReason;
     }
+
+    // 如果状态变成了 rejected，建议清空 rejectReason 以外的敏感字段，或者保持原样也可
+    // 这里保持原样即可
 
     const updatedHotel = await Hotel.findByIdAndUpdate(
       ctx.params.id, 
@@ -215,6 +224,7 @@ router.patch('/:id/status', authMiddleware, isAdmin, async (ctx) => {
 
     ctx.body = successResponse(updatedHotel, '审核状态已更新');
   } catch (err) {
+    console.error(err);
     ctx.body = errorResponse(500, '审核操作失败');
   }
 });
