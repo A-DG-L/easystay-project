@@ -1,51 +1,68 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Button, message, Tag, Space, Card, Modal } from 'antd';
 import { CheckCircleOutlined, CloseCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
-// import axios from '../utils/request'; // 记得解开这个注释
+// 1. 引入请求工具 (保持和其他文件一致)
+import request from '../utils/request'; 
 
 const Audit = () => {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
 
-  // 模拟数据 (为了让你立刻看到效果，不再显示 No Data)
-  // 等接口通了，把这里删掉，用下面的 fetchPendingHotels
-  useEffect(() => {
-    setData([
-      { _id: '1', name: '希尔顿大酒店', address: '北京市朝阳区建国路', status: 'pending', createdAt: '2023-10-01' },
-      { _id: '2', name: '全季酒店(西湖店)', address: '杭州市西湖区', status: 'pending', createdAt: '2023-10-02' },
-      { _id: '3', name: '橘子水晶', address: '上海市浦东新区', status: 'pending', createdAt: '2023-10-05' },
-    ]);
-  }, []);
-
-  /* const fetchPendingHotels = async () => {
+  // 2. 定义获取待审核酒店的函数
+  const fetchPendingHotels = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('/api/hotels/pending');
-      if(res.code === 200) setData(res.data || []);
+      // 注意：这里假设你的后端接口地址是 /hotels/pending
+      // 如果后端接口是 /admin/hotels/pending 或者其他，请对应修改
+      const res = await request.get('/hotels/pending'); 
+      
+      if (res.code === 200) {
+        // 兼容处理：后端可能直接返回数组，也可能返回 { list: [] }
+        const list = res.data?.list || res.data || [];
+        setData(list);
+      }
     } catch (error) {
-      message.error('获取列表失败');
+      console.error(error);
+      message.error('获取待审核列表失败');
     } finally {
       setLoading(false);
     }
   };
-  */
 
-  // 审核处理
+  // 3. 页面加载时调用接口，而不是设置假数据
+  useEffect(() => {
+    fetchPendingHotels();
+  }, []);
+
+  // 4. 审核处理（通过或拒绝）
   const handleAudit = (record, status) => {
+    // status 参数: 'published' (通过) 或 'rejected' (拒绝) 
+    // 注意：你的数据库截图里拒绝状态用的 rejectReason，这里根据业务逻辑调整
+    // 原代码里拒绝写的 'offline'，建议统一状态枚举，这里暂时用 'rejected'
+    const targetStatus = status === 'published' ? 'published' : 'rejected';
+
     Modal.confirm({
-      title: status === 'published' ? '通过审核?' : '拒绝申请?',
+      title: targetStatus === 'published' ? '通过审核?' : '拒绝申请?',
       icon: <ExclamationCircleOutlined />,
-      content: `确定要${status === 'published' ? '通过' : '拒绝'} "${record.name}" 的发布申请吗？`,
+      content: `确定要${targetStatus === 'published' ? '通过' : '拒绝'} "${record.name}" 的发布申请吗？`,
       onOk: async () => {
         try {
-          // await axios.patch(`/api/hotels/${record._id}/status`, { status });
-          message.success('操作成功 (模拟)');
-          // fetchPendingHotels(); // 刷新列表
-          
-          // 模拟前端移除该条目效果
-          setData(prev => prev.filter(item => item._id !== record._id));
+          // 发送请求给后端修改状态
+          // 假设接口是 PATCH /hotels/:id/status
+          const res = await request.patch(`/hotels/${record._id}/status`, { 
+            status: targetStatus 
+          });
+
+          if (res.code === 200) {
+            message.success('操作成功');
+            // 操作成功后重新拉取列表，确保数据同步
+            fetchPendingHotels(); 
+          } else {
+            message.error(res.msg || '操作失败');
+          }
         } catch (error) {
-          message.error('操作失败');
+          console.error(error);
+          message.error('网络异常，操作失败');
         }
       }
     });
@@ -64,10 +81,11 @@ const Audit = () => {
       key: 'address' 
     },
     { 
-      title: '申请时间', 
+      title: '提交时间', 
+      // 数据库截图里没有 createdAt，如果有 openingTime 可以显示，或者显示空
       dataIndex: 'createdAt', 
       key: 'createdAt',
-      render: (text) => <span style={{ color: '#999' }}>{text || '刚刚'}</span>
+      render: (text) => <span style={{ color: '#999' }}>{text ? new Date(text).toLocaleDateString() : '-'}</span>
     },
     { 
       title: '当前状态', 
@@ -92,7 +110,7 @@ const Audit = () => {
             danger 
             shape="round"
             icon={<CloseCircleOutlined />}
-            onClick={() => handleAudit(record, 'offline')}
+            onClick={() => handleAudit(record, 'rejected')}
           >
             拒绝
           </Button>
@@ -102,23 +120,20 @@ const Audit = () => {
   ];
 
   return (
-    // 最外层容器：给一个内边距，让内容不要贴边
     <div style={{ padding: '24px' }}>
-      
-      {/* 头部标题区：也可以用 PageHeader 组件 */}
       <div style={{ marginBottom: '16px' }}>
         <h2 style={{ margin: 0, color: '#1f1f1f' }}>酒店审核控制台</h2>
         <span style={{ color: '#666' }}>管理员可以在此通过或拒绝商户的酒店发布申请</span>
       </div>
 
-      {/* 核心内容区：用 Card 包裹 Table */}
       <Card bordered={false} style={{ borderRadius: '8px', boxShadow: '0 1px 2px rgba(0,0,0,0.03)' }}>
         <Table 
           columns={columns} 
           dataSource={data} 
           rowKey="_id" 
           loading={loading}
-          pagination={{ pageSize: 5 }} // 分页配置
+          pagination={{ pageSize: 10 }}
+          locale={{ emptyText: '暂无待审核酒店' }}
         />
       </Card>
     </div>
