@@ -86,12 +86,12 @@ export default function Booking() {
     setBookingInfo(prev => ({ ...prev, guestPhone: e.detail.value }))
   }
   
-  // 生成订单ID（仅用于本地降级方案）
+  // 生成订单ID
   const generateOrderId = () => {
     return 'ORD' + Date.now() + Math.floor(Math.random() * 1000)
   }
   
-  // 检查房型库存（可选）
+  // 检查房型库存
   const checkRoomAvailability = async () => {
     try {
       const token = Taro.getStorageSync('token')
@@ -156,8 +156,6 @@ export default function Booking() {
         })
         return
       }
-
-      // 可选：先检查库存
       // const isAvailable = await checkRoomAvailability()
       // if (!isAvailable) return
 

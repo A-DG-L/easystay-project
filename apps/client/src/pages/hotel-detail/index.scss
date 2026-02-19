@@ -1,1077 +1,532 @@
-/* 酒店详情页面样式 */
-
-/* 页面容器 */
-.hotel-detail-container {
+/* pages/hotel-detail/index.scss */
+.hotel-detail {
   height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: #f5f5f5;
-}
-
-/* 图片轮播区域 */
-.carousel-section {
-  position: relative;
-  height: 400rpx;
-  width: 100%;
-  background: #000;
-}
-
-.carousel-swiper {
-  width: 100%;
-  height: 100%;
-}
-
-.carousel-item {
-  width: 100%;
-  height: 100%;
-  position: relative;
-}
-
-.carousel-image {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-.image-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.5));
-  padding: 20rpx 30rpx;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.image-count {
-  color: #fff;
-  font-size: 24rpx;
-  opacity: 0.9;
-}
-
-.tap-hint {
-  color: #fff;
-  font-size: 22rpx;
-  opacity: 0.7;
-}
-
-.carousel-indicator {
-  position: absolute;
-  top: 20rpx;
-  right: 20rpx;
-  background: rgba(0, 0, 0, 0.6);
-  padding: 6rpx 12rpx;
-  border-radius: 16rpx;
-  z-index: 10;
-}
-
-.indicator-text {
-  color: #fff;
-  font-size: 22rpx;
-}
-
-.no-image {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  background: #f0f0f0;
-  position: relative;
-}
-
-.default-image {
-  width: 100%;
-  height: 100%;
-}
-
-.no-image-text {
-  position: absolute;
-  color: #999;
-  font-size: 28rpx;
-}
-
-/* 收藏按钮 */
-.like-button-container {
-  position: absolute;
-  top: 20rpx;
-  right: 20rpx;
-  z-index: 20;
-}
-
-.like-button {
-  background: rgba(0, 0, 0, 0.6);
-  border: none;
-  color: white;
-  border-radius: 40rpx;
-  padding: 10rpx 20rpx;
-  font-size: 24rpx;
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-  backdrop-filter: blur(10rpx);
-  
-  &.liked {
-    background: rgba(255, 77, 79, 0.9);
-  }
-  
-  .like-icon {
-    font-size: 28rpx;
-    line-height: 1;
-  }
-  
-  .like-text {
-    font-size: 24rpx;
-  }
-}
-
-/* 内容区域 */
-.hotel-content {
-  flex: 1;
   background: #fff;
-  border-radius: 20rpx 20rpx 0 0;
-  margin-top: -20rpx;
   position: relative;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
-.hotel-info {
-  padding: 30rpx;
-}
-
-/* 酒店头部信息 */
-.hotel-header {
+// 加载状态
+.loading, .error {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 30rpx;
-}
-
-.hotel-title-section {
-  flex: 1;
-  margin-right: 20rpx;
-}
-
-.hotel-name-row {
-  margin-bottom: 15rpx;
-}
-
-.hotel-name {
-  font-size: 36rpx;
-  font-weight: bold;
-  color: #333;
-  line-height: 1.3;
-}
-
-.hotel-rating {
-  display: flex;
+  flex-direction: column;
   align-items: center;
-  margin-bottom: 15rpx;
-}
-
-.stars {
-  display: flex;
-  margin-right: 15rpx;
-}
-
-.star {
-  font-size: 24rpx;
-  margin-right: 5rpx;
-}
-
-.star-filled {
-  color: #ffb400;
-}
-
-.star-empty {
-  color: #ddd;
-}
-
-.star-text {
-  font-size: 24rpx;
+  justify-content: center;
+  height: 100vh;
+  font-size: 28px;
   color: #666;
 }
 
-.hotel-address {
-  display: flex;
-  align-items: flex-start;
-  margin-top: 10rpx;
-}
-
-.address-icon {
-  font-size: 24rpx;
-  margin-right: 8rpx;
-  color: #ff6b00;
-  margin-top: 2rpx;
-}
-
-.address-text {
-  font-size: 24rpx;
-  color: #666;
-  line-height: 1.4;
-  flex: 1;
-}
-
-.price-section {
-  text-align: right;
-  min-width: 160rpx;
-}
-
-.price-label {
-  font-size: 22rpx;
-  color: #999;
-  margin-bottom: 6rpx;
-}
-
-.price-amount {
-  font-size: 42rpx;
-  font-weight: bold;
-  color: #ff6b00;
-  line-height: 1;
-  margin-bottom: 4rpx;
-}
-
-.price-unit {
-  font-size: 22rpx;
-  color: #999;
-}
-
-/* 酒店描述部分 */
-.description-section {
-  margin-bottom: 40rpx;
+// 轮播图
+.carousel {
+  position: relative;
+  height: 400px;
   
-  .section-title {
-    font-size: 30rpx;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 15rpx;
-    position: relative;
-    padding-left: 16rpx;
-    display: block;
+  .carousel-image {
     width: 100%;
-    
-    &::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 6rpx;
-      bottom: 6rpx;
-      width: 4rpx;
-      background: linear-gradient(to bottom, #ff6b00, #ff8c00);
-      border-radius: 2rpx;
-    }
+    height: 400px;
   }
   
-  .description-text {
-    font-size: 26rpx;
-    color: #555;
-    line-height: 1.6;
-    margin-top: 5rpx;
-    display: block;
-    width: 100%;
-  }
-}
-
-/* 酒店设施部分 */
-.facilities-section {
-  margin-bottom: 40rpx;
-  
-  .section-title {
-    font-size: 30rpx;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 15rpx;
-    position: relative;
-    padding-left: 16rpx;
-    display: block;
-    width: 100%;
-    
-    &::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 6rpx;
-      bottom: 6rpx;
-      width: 4rpx;
-      background: linear-gradient(to bottom, #ff6b00, #ff8c00);
-      border-radius: 2rpx;
-    }
+  .carousel-indicator {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(0,0,0,0.5);
+    color: #fff;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 24px;
   }
   
-  .facilities-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12rpx;
-  }
-  
-  .facility-item {
-    background: #f8f9fa;
-    border-radius: 8rpx;
-    padding: 12rpx 16rpx;
-    text-align: center;
-    min-height: 60rpx;
+  .like-btn {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    width: 60px;
+    height: 60px;
+    padding: 0;
+    background: #fff;
+    border-radius: 30px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
     
-    &:active {
-      background: #f0f0f0;
-      transform: translateY(1rpx);
+    &::after {
+      border: none;
     }
-  }
-  
-  .facility-name {
-    font-size: 24rpx;
-    color: #333;
-    line-height: 1.3;
-    word-break: break-all;
+    
+    .like-icon {
+      width: 36px;
+      height: 36px;
+    }
   }
 }
 
-/* 评论区域 */
-.comments-section {
-  margin-bottom: 40rpx;
+// 内容区域
+.content {
+  height: calc(100vh - 400px);
+  padding: 20px;
+}
+
+// 卡片样式
+.info-card, .section, .room-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+// 酒店信息
+.hotel-name {
+  font-size: 36px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.rating {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
   
-  .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 25rpx;
-    width: 100%;
+  .rating-text {
+    font-size: 26px;
+    color: #999;
+    margin-left: 8px;
   }
+}
+
+.address {
+  font-size: 28px;
+  color: #666;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.price {
+  font-size: 32px;
+  color: #F9C850;
+  font-weight: bold;
+  display: block;
+}
+
+// 章节标题
+.section-title {
+  font-size: 32px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
   
-  .section-title {
-    font-size: 30rpx;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 0;
-    flex: 1;
-    white-space: nowrap;
-  }
-  
-  .add-comment-btn {
-    background: linear-gradient(135deg, #ff6b00, #ff8c00);
+  .add-comment {
+    height: 56px;
+    line-height: 56px;
+    background: #F9C850;
     color: #fff;
-    border: none;
-    border-radius: 24rpx;
-    padding: 0 25rpx;
-    font-size: 24rpx;
-    height: 48rpx;
-    line-height: 48rpx;
-    white-space: nowrap;
-    margin-left: 20rpx;
-    box-shadow: 0 4rpx 8rpx rgba(255, 107, 0, 0.2);
+    font-size: 26px;
+    border-radius: 28px;
+    padding: 0 24px;
+    margin: 0;
     
-    &:active {
-      opacity: 0.8;
-      transform: translateY(1rpx);
+    &::after {
+      border: none;
     }
   }
 }
 
-.comments-list {
-  .comment-item {
-    padding: 24rpx 0;
-    border-bottom: 1rpx solid #f0f0f0;
+// 描述
+.description {
+  font-size: 28px;
+  color: #666;
+  line-height: 1.6;
+}
+
+// 设施
+.facilities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  
+  .facility {
+    background: #f8f8f8;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 24px;
+    color: #666;
+  }
+}
+
+// 评论
+.comments {
+  .comment {
+    padding: 20px 0;
+    border-bottom: 1px solid #f0f0f0;
     
     &:last-child {
       border-bottom: none;
     }
     
-    .comment-header {
+    &-header {
       display: flex;
       align-items: center;
-      margin-bottom: 16rpx;
+      margin-bottom: 12px;
       
       .comment-avatar {
-        width: 60rpx;
-        height: 60rpx;
-        border-radius: 50%;
-        margin-right: 20rpx;
-        background-color: #f5f5f5;
+        width: 60px;
+        height: 60px;
+        border-radius: 30px;
+        margin-right: 12px;
       }
       
-      .comment-user {
+      .comment-user-info {
         flex: 1;
-      }
-      
-      .comment-username {
-        font-size: 28rpx;
-        font-weight: 500;
-        margin-bottom: 8rpx;
-        display: block;
+        
+        .comment-user {
+          font-size: 28px;
+          font-weight: 500;
+          color: #333;
+          display: block;
+        }
+        
+        .comment-time {
+          font-size: 22px;
+          color: #999;
+        }
       }
       
       .comment-rating {
-        display: flex;
-        align-items: center;
-        gap: 20rpx;
-      }
-      
-      .comment-time {
-        font-size: 24rpx;
-        color: #999;
+        font-size: 24px;
+        color: #F9C850;
+        white-space: nowrap;
       }
     }
     
-    .comment-content {
-      font-size: 28rpx;
+    &-content {
+      font-size: 28px;
+      color: #666;
       line-height: 1.5;
-      color: #333;
-      margin-bottom: 16rpx;
+      margin-bottom: 12px;
+      display: block;
     }
     
-    .comment-images {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10rpx;
+    &-images {
+      white-space: nowrap;
+      padding-bottom: 4px;
       
       .comment-image {
-        width: 200rpx;
-        height: 200rpx;
-        border-radius: 8rpx;
-        background-color: #f5f5f5;
+        width: 200px;
+        height: 200px;
+        border-radius: 8px;
+        margin-right: 8px;
+        display: inline-block;
       }
     }
   }
 }
 
-.comments-loading {
-  text-align: center;
-  padding: 40rpx 0;
-  
-  .loading-text {
-    color: #999;
-    font-size: 28rpx;
-  }
-}
-
-.no-comments {
-  text-align: center;
-  padding: 60rpx 0;
-  
-  .no-comments-text {
-    color: #999;
-    font-size: 28rpx;
-  }
-}
-
-.view-all-comments-btn {
+.more-btn {
+  background: transparent;
+  color: #F9C850;
+  font-size: 26px;
+  border: 1px solid #F9C850;
+  border-radius: 30px;
+  margin-top: 16px;
   width: 100%;
-  margin-top: 20rpx;
-  background: #f5f5f5;
-  color: #666;
-  border: none;
-  border-radius: 8rpx;
-  padding: 20rpx;
-  font-size: 28rpx;
+  height: 70px;
+  line-height: 70px;
   
-  &.active {
-    background: #e6f7ff;
-    color: #1890ff;
+  &::after {
+    border: none;
   }
 }
 
-/* 星级评分样式 */
-.rating-stars {
-  display: flex;
-  gap: 8rpx;
-  
-  .rating-star {
-    font-size: 36rpx;
-    color: #e8e8e8;
-    
-    &.active {
-      color: #faad14;
-    }
-  }
-}
-
-/* 房型区域 */
-.rooms-section {
-  margin-bottom: 40rpx;
-  
-  .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 25rpx;
-  }
-  
-  .rooms-count {
-    font-size: 24rpx;
-    color: #999;
-  }
-}
-
-.no-rooms-section {
-  margin-bottom: 40rpx;
-  
-  .section-title {
-    font-size: 30rpx;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 15rpx;
-    position: relative;
-    padding-left: 16rpx;
-    display: block;
-    width: 100%;
-    
-    &::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 6rpx;
-      bottom: 6rpx;
-      width: 4rpx;
-      background: linear-gradient(to bottom, #ff6b00, #ff8c00);
-      border-radius: 2rpx;
-    }
-  }
-  
-  .no-rooms-text {
-    font-size: 26rpx;
-    color: #999;
-    text-align: center;
-    padding: 20rpx 0;
-  }
-}
-
+// 房型卡片
 .room-card {
-  background: #fff;
-  border-radius: 16rpx;
-  overflow: hidden;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
-  margin-bottom: 25rpx;
-}
-
-.room-image-container {
-  position: relative;
-  height: 250rpx;
-  width: 100%;
-  overflow: hidden;
-}
-
-.room-image {
-  width: 100%;
-  height: 100%;
-}
-
-.room-image-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
   display: flex;
-  justify-content: center;
-  align-items: center;
-  opacity: 0;
-  transition: opacity 0.2s;
+  gap: 16px;
+  padding: 16px;
+  
+  .room-image {
+    width: 180px;
+    height: 180px;
+    border-radius: 12px;
+    flex-shrink: 0;
+  }
+  
+  .room-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0; // 防止flex溢出
+    
+    .room-name {
+      font-size: 30px;
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .room-desc {
+      font-size: 24px;
+      color: #999;
+      flex: 1;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    
+    .room-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: auto;
+      
+      .room-price {
+        font-size: 32px;
+        color: #F9C850;
+        font-weight: bold;
+        
+        .unit {
+          font-size: 24px;
+          color: #999;
+          font-weight: normal;
+        }
+      }
+      
+      .book-btn {
+        width: 120px;
+        height: 56px;
+        line-height: 56px;
+        background: #F9C850;
+        color: #fff;
+        font-size: 26px;
+        border-radius: 28px;
+        margin: 0;
+        padding: 0;
+        text-align: center;
+        
+        &::after {
+          border: none;
+        }
+      }
+    }
+  }
 }
 
-.room-image-container:active .room-image-overlay {
-  opacity: 1;
+// 联系按钮
+.contact-btn {
+  width: 100%;
+  height: 80px;
+  line-height: 80px;
+  background: #f8f8f8;
+  color: #666;
+  font-size: 28px;
+  border-radius: 40px;
+  margin: 20px 0;
+  
+  &::after {
+    border: none;
+  }
 }
 
-.room-image-hint {
-  color: #fff;
-  font-size: 24rpx;
-  padding: 10rpx 20rpx;
-  background: rgba(0, 0, 0, 0.7);
-  border-radius: 24rpx;
-}
-
-.room-info {
-  padding: 24rpx;
-}
-
-.room-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 15rpx;
-}
-
-.room-name {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #333;
-  flex: 1;
-  margin-right: 15rpx;
-}
-
-.room-price {
-  color: #ff6b00;
-  font-size: 32rpx;
-  font-weight: bold;
-  white-space: nowrap;
-}
-
-.price-unit-small {
-  font-size: 22rpx;
+// 空状态
+.empty-text {
+  font-size: 28px;
   color: #999;
-  font-weight: normal;
+  text-align: center;
+  padding: 40px 0;
+  display: block;
 }
 
-.room-description {
-  font-size: 26rpx;
-  color: #666;
-  line-height: 1.5;
-  margin-bottom: 20rpx;
-}
-
-.room-details {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.room-bed-info {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-}
-
-.room-bed {
-  font-size: 24rpx;
-  color: #666;
-}
-
-.book-room-button {
-  background: linear-gradient(135deg, #ff6b00, #ff8c00);
-  color: #fff;
-  border: none;
-  border-radius: 24rpx;
-  font-size: 22rpx;
-  padding: 0 20rpx;
-  height: 48rpx;
-  line-height: 48rpx;
-}
-
-.book-room-button:active {
-  opacity: 0.8;
-}
-
-/* 评论弹窗样式 - 完全重构 */
-.comment-modal {
+// 评价弹窗
+.modal {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0,0,0,0.5);
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-end;
   z-index: 1000;
-  padding: 30rpx;
+  
+  &-content {
+    background: #fff;
+    width: 100%;
+    border-radius: 20px 20px 0 0;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  
+  &-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 30px;
+    border-bottom: 1px solid #f0f0f0;
+    
+    .modal-title {
+      font-size: 32px;
+      font-weight: bold;
+      color: #333;
+    }
+    
+    .close {
+      width: 60px;
+      height: 60px;
+      line-height: 60px;
+      text-align: center;
+      background: transparent;
+      font-size: 40px;
+      color: #999;
+      padding: 0;
+      margin: 0;
+      
+      &::after {
+        border: none;
+      }
+    }
+  }
+  
+  &-body {
+    padding: 30px;
+  }
+}
+
+.rating-select {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-bottom: 30px;
+  
+  .star {
+    font-size: 48px;
+    color: #ddd;
+    
+    &.active {
+      color: #F9C850;
+    }
+  }
+}
+
+.input {
+  width: 100%;
+  min-height: 200px;
+  background: #f8f8f8;
+  border-radius: 12px;
+  padding: 20px;
+  font-size: 28px;
+  margin-bottom: 30px;
   box-sizing: border-box;
 }
 
-.comment-modal-content {
-  width: 100%;
-  max-width: 650rpx;
-  max-height: 80vh;
-  background-color: #fff;
-  border-radius: 24rpx;
+.upload-area {
+  margin-bottom: 30px;
+  
+  .upload-btn {
+    width: 180px;
+    height: 180px;
+    background: #f8f8f8;
+    border: 2px dashed #ddd;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 26px;
+    margin: 0 0 16px 0;
+    
+    &[disabled] {
+      opacity: 0.6;
+    }
+    
+    &::after {
+      border: none;
+    }
+  }
+  
+  .image-list {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    
+    .image-item {
+      position: relative;
+      width: 180px;
+      height: 180px;
+      
+      Image {
+        width: 100%;
+        height: 100%;
+        border-radius: 12px;
+      }
+      
+      .remove {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        width: 40px;
+        height: 40px;
+        background: rgba(0,0,0,0.6);
+        color: #fff;
+        border-radius: 20px;
+        font-size: 30px;
+        line-height: 34px;
+        text-align: center;
+        padding: 0;
+        margin: 0;
+        
+        &::after {
+          border: none;
+        }
+      }
+    }
+  }
+}
+
+.modal-footer {
   display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  position: relative;
-  box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.2);
-}
-
-.modal-header {
-  padding: 30rpx 30rpx 20rpx;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 2rpx solid #f0f0f0;
-  flex-shrink: 0;
-}
-
-.modal-title {
-  font-size: 34rpx;
-  font-weight: 600;
-  color: #333;
-}
-
-.close-modal-btn {
-  width: 48rpx;
-  height: 48rpx;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #f5f5f5;
-  border-radius: 8rpx;
-  font-size: 40rpx;
-  color: #666;
-  line-height: 1;
-  border: none;
+  gap: 20px;
   
-  &::after {
-    border: none;
+  button {
+    flex: 1;
+    height: 80px;
+    line-height: 80px;
+    border-radius: 40px;
+    font-size: 30px;
+    margin: 0;
+    padding: 0;
+    
+    &::after {
+      border: none;
+    }
   }
   
-  &:active {
-    background-color: #e0e0e0;
-  }
-}
-
-.modal-body {
-  padding: 30rpx;
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 30rpx;
-}
-
-/* 评分选择器 */
-.rating-selector {
-  display: flex;
-  align-items: center;
-  margin-bottom: 0;
-}
-
-.rating-label {
-  font-size: 28rpx;
-  color: #333;
-  margin-right: 20rpx;
-  white-space: nowrap;
-}
-
-.rating-stars {
-  display: flex;
-  gap: 12rpx;
-}
-
-.rating-star {
-  font-size: 48rpx;
-  color: #ddd;
-  transition: all 0.2s;
-  
-  &.active {
-    color: #ff8c42;
-  }
-}
-
-/* 评论输入框 */
-.comment-input {
-  width: 100%;
-  min-height: 200rpx;
-  padding: 24rpx;
-  background-color: #f8f8f8;
-  border-radius: 12rpx;
-  font-size: 28rpx;
-  color: #333;
-  border: 2rpx solid #f0f0f0;
-  box-sizing: border-box;
-  
-  &:focus {
-    border-color: #ff8c42;
-    background-color: #fff;
-  }
-}
-
-/* 图片上传区域 */
-.image-upload-section {
-  display: flex;
-  flex-direction: column;
-  gap: 20rpx;
-}
-
-.upload-image-btn {
-  width: 160rpx;
-  height: 160rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #f8f8f8;
-  border: 2rpx dashed #ddd;
-  border-radius: 12rpx;
-  font-size: 28rpx;
-  color: #666;
-  padding: 0;
-  
-  &::after {
-    border: none;
+  .cancel {
+    background: #f8f8f8;
+    color: #666;
   }
   
-  &:active {
-    background-color: #f0f0f0;
-  }
-  
-  &[disabled] {
-    opacity: 0.6;
-  }
-}
-
-.selected-images {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20rpx;
-  margin-top: 10rpx;
-}
-
-.selected-image-item {
-  position: relative;
-  width: 160rpx;
-  height: 160rpx;
-}
-
-.selected-image {
-  width: 100%;
-  height: 100%;
-  border-radius: 12rpx;
-  object-fit: cover;
-  border: 2rpx solid #f0f0f0;
-}
-
-.remove-image-btn {
-  position: absolute;
-  top: -10rpx;
-  right: -10rpx;
-  width: 40rpx;
-  height: 40rpx;
-  min-width: 40rpx;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: rgba(0, 0, 0, 0.6);
-  border-radius: 20rpx;
-  font-size: 32rpx;
-  color: #fff;
-  border: 2rpx solid #fff;
-  
-  &::after {
-    border: none;
-  }
-  
-  &:active {
-    background-color: rgba(0, 0, 0, 0.8);
-  }
-}
-
-.image-tips {
-  font-size: 24rpx;
-  color: #999;
-  margin-top: 10rpx;
-}
-
-/* 底部按钮区域 */
-.modal-actions {
-  display: flex;
-  gap: 20rpx;
-  padding: 30rpx;
-  border-top: 2rpx solid #f0f0f0;
-  background-color: #fff;
-  flex-shrink: 0;
-}
-
-.cancel-btn,
-.submit-btn {
-  flex: 1;
-  height: 80rpx;
-  line-height: 80rpx;
-  text-align: center;
-  font-size: 30rpx;
-  border-radius: 40rpx;
-  padding: 0;
-  border: none;
-  
-  &::after {
-    border: none;
-  }
-}
-
-.cancel-btn {
-  background-color: #f5f5f5;
-  color: #666;
-  
-  &:active {
-    background-color: #e8e8e8;
-  }
-}
-
-.submit-btn {
-  background: linear-gradient(135deg, #ff6b00, #ff8c00);
-  color: #fff;
-  
-  &:active {
-    opacity: 0.9;
-  }
-  
-  &[disabled] {
-    background: #ffb380;
-  }
-}
-
-/* 底部操作按钮 */
-.action-buttons {
-  padding: 20rpx 0;
-}
-
-.contact-button {
-  width: 100%;
-  background: linear-gradient(135deg, #ff8c00, #ff6b00);
-  color: #fff;
-  border: none;
-  border-radius: 40rpx;
-  font-size: 28rpx;
-  height: 80rpx;
-  line-height: 80rpx;
-  box-shadow: 0 4rpx 12rpx rgba(255, 107, 0, 0.2);
-}
-
-.contact-button:active {
-  background: linear-gradient(135deg, #ff6b00, #ff5500);
-  opacity: 0.9;
-  transform: scale(0.98);
-}
-
-/* 加载状态 */
-.loading-container {
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: #f5f5f5;
-}
-
-.loading-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.loading-text {
-  font-size: 28rpx;
-  color: #666;
-  margin-top: 20rpx;
-}
-
-/* 错误状态 */
-.error-container {
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: #f5f5f5;
-}
-
-.error-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 40rpx;
-}
-
-.error-icon {
-  font-size: 100rpx;
-  margin-bottom: 20rpx;
-}
-
-.error-title {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 10rpx;
-}
-
-.error-text {
-  font-size: 26rpx;
-  color: #666;
-  margin-bottom: 40rpx;
-  max-width: 400rpx;
-  line-height: 1.5;
-}
-
-.error-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 20rpx;
-  width: 100%;
-  max-width: 400rpx;
-}
-
-.retry-button {
-  background: linear-gradient(135deg, #ff6b00, #ff8c00);
-  color: #fff;
-  border: none;
-  border-radius: 40rpx;
-  font-size: 28rpx;
-  height: 80rpx;
-  line-height: 80rpx;
-  width: 100%;
-}
-
-.back-button {
-  background: #f0f0f0;
-  color: #666;
-  border: none;
-  border-radius: 40rpx;
-  font-size: 28rpx;
-  height: 80rpx;
-  line-height: 80rpx;
-  width: 100%;
-}
-
-.retry-button:active {
-  opacity: 0.8;
-}
-
-.back-button:active {
-  background: #e0e0e0;
-}
-
-/* 适配不同屏幕 */
-@media (max-width: 750px) {
-  .carousel-section {
-    height: 350rpx;
-  }
-  
-  .room-image-container {
-    height: 220rpx;
-  }
-  
-  .hotel-name {
-    font-size: 32rpx;
-  }
-  
-  .price-amount {
-    font-size: 38rpx;
-  }
-  
-  .comment-images .comment-image {
-    width: 180rpx;
-    height: 180rpx;
-  }
-  
-  .facilities-grid {
-    gap: 10rpx;
-  }
-  
-  .facility-item {
-    padding: 10rpx 12rpx;
-    min-height: 55rpx;
-  }
-  
-  .facility-name {
-    font-size: 22rpx;
-  }
-  
-  .comment-modal-content {
-    max-width: 90%;
+  .submit {
+    background: #F9C850;
+    color: #fff;
+    
+    &[disabled] {
+      opacity: 0.5;
+    }
   }
 }

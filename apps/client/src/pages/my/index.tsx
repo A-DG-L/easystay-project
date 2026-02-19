@@ -1,5 +1,5 @@
 import { View, Text, Image, ScrollView, Button } from '@tarojs/components'
-import { useLoad, navigateTo, showModal, showToast, switchTab } from '@tarojs/taro'
+import { useLoad, useDidShow, navigateTo, showModal, showToast, switchTab } from '@tarojs/taro'
 import { useState, useEffect } from 'react'
 import Taro from '@tarojs/taro'
 import request from '../../utils/request'
@@ -7,6 +7,7 @@ import './index.scss'
 
 // 默认头像
 const DEFAULT_AVATAR = 'https://api.dicebear.com/7.x/avataaars/png?seed=default&size=40'
+const BASE_URL = 'http://localhost:3000'
 
 // 类型定义
 interface UserInfo {
@@ -26,10 +27,64 @@ interface ProfileData {
   stats: UserStats
 }
 
+// 订单类型定义
+interface Order {
+  id: string
+  status: 'pending' | 'paid' | 'completed' | 'cancelled'
+  reviewed?: boolean
+}
+
 export default function Profile() {
   const [loading, setLoading] = useState(true)
   const [profileData, setProfileData] = useState<ProfileData | null>(null)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [orderStats, setOrderStats] = useState({
+    total: 0,
+    pending: 0,
+    paid: 0,
+    completed: 0,
+    cancelled: 0
+  })
+
+  // 清理头像路径，移除null前缀
+  const cleanAvatarPath = (path: string): string => {
+    if (!path) return ''
+    if (path.startsWith('null/')) return path.substring(5)
+    if (path.includes('/null/')) return path.replace('/null/', '/')
+    return path
+  }
+
+  // 获取完整的头像URL
+  const getFullAvatarUrl = (avatarPath?: string): string => {
+    console.log('个人中心 - 原始头像路径:', avatarPath)
+    
+    if (!avatarPath) {
+      console.log('个人中心 - 头像路径为空，使用默认头像')
+      return DEFAULT_AVATAR
+    }
+    
+    // 如果已经是完整URL，直接返回
+    if (avatarPath.startsWith('http://') || avatarPath.startsWith('https://')) {
+      return avatarPath
+    }
+    
+    // 清理路径中的null
+    const cleanedPath = cleanAvatarPath(avatarPath)
+    console.log('个人中心 - 清理后的路径:', cleanedPath)
+    
+    // 移除开头的斜杠
+    const finalPath = cleanedPath.startsWith('/') ? cleanedPath.substring(1) : cleanedPath
+    
+    if (!finalPath) {
+      return DEFAULT_AVATAR
+    }
+    
+    // 拼接完整URL
+    const fullUrl = `${BASE_URL}/${finalPath}`
+    console.log('个人中心 - 完整头像URL:', fullUrl)
+    
+    return fullUrl
+  }
 
   // 检查登录状态
   const checkLogin = () => {
@@ -49,12 +104,45 @@ export default function Profile() {
     return true
   }
 
+  // 从本地存储计算订单统计
+  const calculateOrderStats = () => {
+    try {
+      const orders: Order[] = Taro.getStorageSync('orders') || []
+      
+      const validOrders = orders.filter(order => order.status !== 'cancelled')
+      
+      const stats = {
+        total: validOrders.length,
+        pending: orders.filter(o => o.status === 'pending').length,
+        paid: orders.filter(o => o.status === 'paid').length,
+        completed: orders.filter(o => o.status === 'completed').length,
+        cancelled: orders.filter(o => o.status === 'cancelled').length
+      }
+      
+      setOrderStats(stats)
+      console.log('订单统计:', stats)
+      
+      return stats
+    } catch (error) {
+      console.error('计算订单统计失败:', error)
+      return {
+        total: 0,
+        pending: 0,
+        paid: 0,
+        completed: 0,
+        cancelled: 0
+      }
+    }
+  }
+
   // 加载用户信息
   const loadUserProfile = async () => {
     try {
       setLoading(true)
       
       if (!checkLogin()) return
+
+      const localStats = calculateOrderStats()
 
       const response = await request({
         url: '/users/profile',
@@ -64,7 +152,23 @@ export default function Profile() {
       console.log('获取用户信息API返回:', response)
       
       if (response.code === 200) {
-        setProfileData(response.data)
+        const userData = response.data.userInfo || response.data
+        
+        // 处理头像URL
+        const processedAvatar = getFullAvatarUrl(userData.avatar)
+        
+        setProfileData({
+          userInfo: {
+            username: userData.username || '',
+            nickname: userData.nickname || '',
+            avatar: processedAvatar
+          },
+          stats: {
+            orderCount: localStats.total,
+            pendingPaymentCount: localStats.pending,
+            likeCount: response.data.stats?.likeCount || 0
+          }
+        })
       } else if (response.code === 401) {
         Taro.removeStorageSync('token')
         setIsLoggedIn(false)
@@ -79,6 +183,27 @@ export default function Profile() {
       }
     } catch (error: any) {
       console.error('加载用户信息失败:', error)
+      
+      const localStats = calculateOrderStats()
+      setOrderStats(localStats)
+      
+      // 尝试从本地存储加载用户信息
+      const localUserInfo = Taro.getStorageSync('userInfo') || {}
+      if (localUserInfo.username) {
+        setProfileData({
+          userInfo: {
+            username: localUserInfo.username || '',
+            nickname: localUserInfo.nickname || '',
+            avatar: getFullAvatarUrl(localUserInfo.avatar)
+          },
+          stats: {
+            orderCount: localStats.total,
+            pendingPaymentCount: localStats.pending,
+            likeCount: 0
+          }
+        })
+      }
+      
       showToast({ title: error.message || '加载失败', icon: 'none' })
     } finally {
       setLoading(false)
@@ -115,6 +240,11 @@ export default function Profile() {
     switchTab({ url: '/pages/order/index' })
   }
 
+  // 查看待支付订单
+  const handleViewPendingOrders = () => {
+    switchTab({ url: '/pages/order/index?tab=pending' })
+  }
+
   // 退出登录
   const handleLogout = async () => {
     showModal({
@@ -140,11 +270,25 @@ export default function Profile() {
     })
   }
 
+  // 刷新订单统计
+  const refreshOrderStats = () => {
+    calculateOrderStats()
+  }
+
+  // 页面显示时刷新数据
+  useDidShow(() => {
+    console.log('个人中心页面显示，刷新数据')
+    if (isLoggedIn) {
+      loadUserProfile()
+      refreshOrderStats()
+    }
+  })
+
   useLoad(() => {
     loadUserProfile()
   })
 
-  // 监听登录状态变化
+  // 监听登录状态
   useEffect(() => {
     const token = Taro.getStorageSync('token')
     setIsLoggedIn(!!token)
@@ -179,7 +323,6 @@ export default function Profile() {
   }
 
   const userInfo = profileData?.userInfo
-  const stats = profileData?.stats
 
   return (
     <View className='profile-container'>
@@ -189,9 +332,10 @@ export default function Profile() {
           <View className='profile-header'>
             <Image 
               className='avatar'
-              src={userInfo?.avatar || DEFAULT_AVATAR}
+              src={userInfo?.avatar ? getFullAvatarUrl(userInfo.avatar) : DEFAULT_AVATAR}
               mode='aspectFill'
               onError={(e: any) => {
+                console.error('头像加载失败:', e.detail.errMsg)
                 e.currentTarget.src = DEFAULT_AVATAR
               }}
             />
@@ -203,11 +347,15 @@ export default function Profile() {
           
           <View className='profile-stats'>
             <View className='stat-item' onClick={handleViewOrders}>
-              <Text className='stat-number'>{stats?.orderCount || 0}</Text>
-              <Text className='stat-label'>我的订单</Text>
+              <Text className='stat-number'>{orderStats.total}</Text>
+              <Text className='stat-label'>全部订单</Text>
+            </View>
+            <View className='stat-item' onClick={handleViewPendingOrders}>
+              <Text className='stat-number'>{orderStats.pending}</Text>
+              <Text className='stat-label'>待支付</Text>
             </View>
             <View className='stat-item' onClick={handleViewMyCollections}>
-              <Text className='stat-number'>{stats?.likeCount || 0}</Text>
+              <Text className='stat-number'>{profileData?.stats?.likeCount || 0}</Text>
               <Text className='stat-label'>我的收藏</Text>
             </View>
           </View>
@@ -218,21 +366,42 @@ export default function Profile() {
           </View>
         </View>
 
+        {/* 订单状态卡片 */}
+        <View className='order-status-card'>
+          <View className='section-title'>
+            <Text>订单状态</Text>
+            <Text className='order-total' onClick={handleViewOrders}>查看全部 ›</Text>
+          </View>
+          
+          <View className='status-grid'>
+            <View className='status-item' onClick={() => switchTab({ url: '/pages/order/index?tab=pending' })}>
+              <Text className='status-count'>{orderStats.pending}</Text>
+              <Text className='status-label'>待支付</Text>
+            </View>
+            
+            <View className='status-item' onClick={() => switchTab({ url: '/pages/order/index?tab=paid' })}>
+              <Text className='status-count'>{orderStats.paid}</Text>
+              <Text className='status-label'>待使用</Text>
+            </View>
+            
+            <View className='status-item' onClick={() => switchTab({ url: '/pages/order/index?tab=completed' })}>
+              <Text className='status-count'>{orderStats.completed}</Text>
+              <Text className='status-label'>待评价</Text>
+            </View>
+            
+            <View className='status-item' onClick={() => switchTab({ url: '/pages/order/index?tab=cancelled' })}>
+              <Text className='status-count'>{orderStats.cancelled}</Text>
+              <Text className='status-label'>已取消</Text>
+            </View>
+          </View>
+        </View>
+
         {/* 功能列表 */}
         <View className='function-list'>
           <View className='section-title'>我的功能</View>
           
-          <View className='function-item' onClick={handleViewOrders}>
-            <View className='function-left'>
-              <Text className='function-icon'>📦</Text>
-              <Text className='function-name'>我的订单</Text>
-            </View>
-            <Text className='function-arrow'>›</Text>
-          </View>
-          
           <View className='function-item' onClick={handleViewMyComments}>
             <View className='function-left'>
-              <Text className='function-icon'>📝</Text>
               <Text className='function-name'>我的评价</Text>
             </View>
             <Text className='function-arrow'>›</Text>
@@ -240,7 +409,6 @@ export default function Profile() {
           
           <View className='function-item' onClick={handleViewMyCollections}>
             <View className='function-left'>
-              <Text className='function-icon'>❤️</Text>
               <Text className='function-name'>我的收藏</Text>
             </View>
             <Text className='function-arrow'>›</Text>
@@ -248,7 +416,6 @@ export default function Profile() {
           
           <View className='function-item' onClick={handleViewHistory}>
             <View className='function-left'>
-              <Text className='function-icon'>📋</Text>
               <Text className='function-name'>浏览记录</Text>
             </View>
             <Text className='function-arrow'>›</Text>

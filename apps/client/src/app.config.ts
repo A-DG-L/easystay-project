@@ -30,26 +30,26 @@ export default defineAppConfig({
       {
         pagePath: 'pages/index/index',
         text: '首页',
-        iconPath: '', 
-        selectedIconPath: ''
+        iconPath: 'assets/icons/home_unselected.png', 
+        selectedIconPath: 'assets/icons/home_selected.png'
       },
       {
         pagePath: 'pages/likes-history/index',
-        text: '收藏',
-        iconPath: '',
-        selectedIconPath: ''
+        text: '记录',
+        iconPath: 'assets/icons/history_unselected.png',
+        selectedIconPath: 'assets/icons/history_selected.png'
       },
       {
         pagePath: 'pages/order/index',
         text: '订单',
-        iconPath: '',
-        selectedIconPath: ''
+        iconPath: 'assets/icons/order_unselected.png',
+        selectedIconPath: 'assets/icons/order_selected.png'
       },
       {
         pagePath: 'pages/my/index',
         text: '我的',
-        iconPath: '',
-        selectedIconPath: ''
+        iconPath: 'assets/icons/my_unselected.png',
+        selectedIconPath: 'assets/icons/my_selected.png'
       }
     ]
   }

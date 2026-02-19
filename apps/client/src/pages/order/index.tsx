@@ -1,6 +1,6 @@
 // pages/order/index.tsx
-import { View, Text, Image, Button } from '@tarojs/components'
-import { useLoad, useDidShow, showModal, showToast, navigateTo } from '@tarojs/taro'
+import { View, Text, Button } from '@tarojs/components'
+import { useLoad, useDidShow, showModal, showToast, navigateTo, switchTab } from '@tarojs/taro'
 import { useState } from 'react'
 import Taro from '@tarojs/taro'
 import './index.scss'
@@ -14,8 +14,6 @@ interface Order {
   _id?: string
   hotelId: string
   hotelName: string
-  hotelImage?: string
-  roomId: string
   roomName: string
   roomPrice: number
   checkInDate: string
@@ -28,13 +26,7 @@ interface Order {
   orderTime: string
   status: OrderStatus
   reviewed: boolean
-  canReview?: boolean
-  usedTime?: string
-  payTime?: string
-  cancelTime?: string
-  reviewTime?: string
-  reviewId?: string
-  [key: string]: any // 允许其他字段
+  [key: string]: any
 }
 
 export default function Order() {
@@ -55,22 +47,83 @@ export default function Order() {
   })
 
   // 加载订单数据
-  const loadOrders = () => {
+  const loadOrders = async () => {
     try {
       setLoading(true)
-      const orderList = Taro.getStorageSync('orders') || []
-      console.log('从存储加载的订单列表:', orderList)
       
-      // 确保每个订单都有必要的字段，并统一ID格式
-      const validOrders: Order[] = orderList.map((order: any) => ({
-        ...order,
-        id: order.id || order._id,
-        _id: order._id || order.id,
-        status: order.status || 'pending',
-        reviewed: order.reviewed || false,
-        nights: order.nights || 1,
-        roomCount: order.roomCount || 1
-      }))
+      let orderList: any[] = []
+      const token = Taro.getStorageSync('token')
+      
+      // 如果有token，优先从后端获取订单
+      if (token) {
+        try {
+          const response = await Taro.request({
+            url: 'http://localhost:3000/api/orders',
+            method: 'GET',
+            header: { 'Authorization': token }
+          })
+          
+          if (response.data.code === 200) {
+            if (Array.isArray(response.data.data)) {
+              orderList = response.data.data
+            } else if (response.data.data && response.data.data.list) {
+              orderList = response.data.data.list
+            }
+            
+            if (orderList.length > 0) {
+              Taro.setStorageSync('orders', orderList)
+            }
+          }
+        } catch (error) {
+          console.warn('从后端获取订单失败，使用本地缓存')
+        }
+      }
+      
+      // 如果后端没有数据，使用本地存储
+      if (!orderList || orderList.length === 0) {
+        orderList = Taro.getStorageSync('orders') || []
+      }
+      
+      // 处理订单数据
+      const validOrders: Order[] = orderList.map((order: any) => {
+        // 从嵌套对象中提取信息
+        let hotelName = '未知酒店'
+        let roomName = '未知房型'
+        let roomPrice = 0
+        
+        if (order.hotelId && typeof order.hotelId === 'object') {
+          hotelName = order.hotelId.name || '未知酒店'
+        } else {
+          hotelName = order.hotelName || order.hotel_name || '未知酒店'
+        }
+        
+        if (order.roomId && typeof order.roomId === 'object') {
+          roomName = order.roomId.name || '未知房型'
+          roomPrice = order.roomId.price || 0
+        } else {
+          roomName = order.roomName || order.room_name || '未知房型'
+          roomPrice = order.roomPrice || order.room_price || 0
+        }
+        
+        return {
+          id: order.id || order._id || '',
+          _id: order._id || order.id,
+          hotelId: order.hotelId?._id || order.hotelId || '',
+          hotelName: hotelName,
+          roomName: roomName,
+          roomPrice: roomPrice,
+          checkInDate: order.checkInDate || order.check_in_date || '',
+          checkOutDate: order.checkOutDate || order.check_out_date || '',
+          nights: order.nights || order.nightCount || 1,
+          roomCount: order.roomCount || order.room_count || 1,
+          totalPrice: order.totalPrice || order.total_price || 0,
+          guestName: order.guestName || order.guest_name || '',
+          guestPhone: order.guestPhone || order.guest_phone || '',
+          orderTime: order.orderTime || order.createdAt || order.create_time || '',
+          status: order.status || 'pending',
+          reviewed: order.reviewed || false
+        }
+      })
       
       setOrders(validOrders)
     } catch (error) {
@@ -83,9 +136,6 @@ export default function Order() {
 
   // 过滤订单
   const filterOrders = (): Order[] => {
-    console.log('当前标签:', activeTab)
-    console.log('所有订单:', orders)
-    
     let filtered: Order[] = []
     switch (activeTab) {
       case 'pending':
@@ -106,8 +156,6 @@ export default function Order() {
       default:
         filtered = orders
     }
-    
-    console.log(`标签 ${activeTab} 过滤后:`, filtered)
     return filtered
   }
 
@@ -118,44 +166,26 @@ export default function Order() {
       
       const token = Taro.getStorageSync('token')
       
-      // 调用支付接口
-      if (token) {
-        const response = await Taro.request({
-          url: `http://localhost:3000/api/orders/${order.id}/pay`,
-          method: 'POST',
-          header: {
-            'Authorization': token
-          }
-        })
-
-        if (response.data.code !== 200 && response.data.code !== 201) {
-          throw new Error(response.data.msg || '支付失败')
-        }
+      if (!token) {
+        showToast({ title: '请先登录', icon: 'none' })
+        return
       }
       
-      // 更新本地订单状态 - 明确指定类型
-      const updatedOrders: Order[] = orders.map(item => {
-        if (item.id === order.id || item._id === order.id) {
-          return { 
-            ...item, 
-            status: 'paid' as OrderStatus,
-            payTime: new Date().toLocaleString()
-          }
-        }
-        return item
+      const response = await Taro.request({
+        url: `http://localhost:3000/api/orders/${order.id}/pay`,
+        method: 'POST',
+        header: { 'Authorization': token }
       })
-      
-      setOrders(updatedOrders)
-      Taro.setStorageSync('orders', updatedOrders)
-      
-      showToast({ title: '支付成功', icon: 'success' })
-      
-      // 刷新列表
-      loadOrders()
-      
-    } catch (error) {
+
+      if (response.data.code === 200 || response.data.code === 201) {
+        showToast({ title: '支付成功', icon: 'success' })
+        await loadOrders()
+      } else {
+        throw new Error(response.data.msg || '支付失败')
+      }
+    } catch (error: any) {
       console.error('支付失败:', error)
-      showToast({ title: '支付失败', icon: 'error' })
+      showToast({ title: error.message || '支付失败', icon: 'error' })
     }
   }
 
@@ -171,44 +201,26 @@ export default function Order() {
             
             const token = Taro.getStorageSync('token')
             
-            // 调用取消订单接口
-            if (token) {
-              const response = await Taro.request({
-                url: `http://localhost:3000/api/orders/${order.id}/cancel`,
-                method: 'POST',
-                header: {
-                  'Authorization': token
-                }
-              })
-
-              if (response.data.code !== 200 && response.data.code !== 201) {
-                throw new Error(response.data.msg || '取消失败')
-              }
+            if (!token) {
+              showToast({ title: '请先登录', icon: 'none' })
+              return
             }
             
-            // 更新本地订单状态 - 明确指定类型
-            const updatedOrders: Order[] = orders.map(item => {
-              if (item.id === order.id || item._id === order.id) {
-                return { 
-                  ...item, 
-                  status: 'cancelled' as OrderStatus,
-                  cancelTime: new Date().toLocaleString()
-                }
-              }
-              return item
+            const response = await Taro.request({
+              url: `http://localhost:3000/api/orders/${order.id}/cancel`,
+              method: 'POST',
+              header: { 'Authorization': token }
             })
-            
-            setOrders(updatedOrders)
-            Taro.setStorageSync('orders', updatedOrders)
-            
-            showToast({ title: '订单已取消', icon: 'success' })
-            
-            // 刷新列表
-            loadOrders()
-            
-          } catch (error) {
+
+            if (response.data.code === 200 || response.data.code === 201) {
+              showToast({ title: '订单已取消', icon: 'success' })
+              await loadOrders()
+            } else {
+              throw new Error(response.data.msg || '取消失败')
+            }
+          } catch (error: any) {
             console.error('取消失败:', error)
-            showToast({ title: '取消失败', icon: 'error' })
+            showToast({ title: error.message || '取消失败', icon: 'error' })
           }
         }
       }
@@ -224,16 +236,10 @@ export default function Order() {
       confirmColor: '#ff6600',
       success: (res) => {
         if (res.confirm) {
-          // 更新本地订单状态 - 明确指定类型
-          const updatedOrders: Order[] = orders.map(item => 
+          // 更新本地订单状态
+          const updatedOrders = orders.map(item => 
             item.id === order.id || item._id === order.id
-              ? { 
-                  ...item, 
-                  status: 'completed' as OrderStatus,
-                  canReview: true, 
-                  reviewed: false, 
-                  usedTime: new Date().toLocaleString() 
-                }
+              ? { ...item, status: 'completed' as OrderStatus, reviewed: false, usedTime: new Date().toLocaleString() }
               : item
           )
           setOrders(updatedOrders)
@@ -263,129 +269,47 @@ export default function Order() {
     navigateTo({ url: `/pages/hotel-detail/index?id=${order.hotelId}&tab=comment` })
   }
 
+  // 查看酒店详情
+  const viewDetail = (hotel: any) => {
+    let hotelId = ''
+    if (typeof hotel === 'string') {
+      hotelId = hotel
+    } else if (hotel && typeof hotel === 'object') {
+      hotelId = hotel._id || hotel.id || ''
+    }
+    
+    if (!hotelId) {
+      showToast({ title: '酒店ID无效', icon: 'none' })
+      return
+    }
+    
+    navigateTo({ url: `/pages/hotel-detail/index?id=${hotelId}` })
+  }
+
   // 重新预订
   const handleRebook = (order: Order) => {
     navigateTo({ 
-      url: `/pages/booking/index?hotelId=${order.hotelId}&hotelName=${encodeURIComponent(order.hotelName)}&hotelImage=${encodeURIComponent(order.hotelImage || '')}&roomId=${order.roomId}&roomName=${encodeURIComponent(order.roomName)}&roomPrice=${order.roomPrice}`
+      url: `/pages/booking/index?hotelId=${order.hotelId}&hotelName=${encodeURIComponent(order.hotelName)}&roomId=${order.roomId}&roomName=${encodeURIComponent(order.roomName)}&roomPrice=${order.roomPrice}`
     })
-  }
-
-  // 查看酒店详情
-  const viewDetail = (hotelId: string) => {
-    navigateTo({ url: `/pages/hotel-detail/index?hotelId=${hotelId}` })
   }
 
   // 获取状态文本和样式
   const getStatusInfo = (order: Order) => {
-    if (order.reviewed) {
-      return { text: '已评价', className: 'reviewed' }
-    }
+    if (order.reviewed) return { text: '已评价', className: 'reviewed' }
     
-    switch (order.status) {
-      case 'pending':
-        return { text: '待支付', className: 'pending' }
-      case 'paid':
-        return { text: '待使用', className: 'paid' }
-      case 'completed':
-        return { text: '待评价', className: 'completed' }
-      case 'cancelled':
-        return { text: '已取消', className: 'cancelled' }
-      default:
-        return { text: order.status || '未知', className: 'unknown' }
+    const map = {
+      pending: { text: '待支付', className: 'pending' },
+      paid: { text: '待使用', className: 'paid' },
+      completed: { text: '待评价', className: 'completed' },
+      cancelled: { text: '已取消', className: 'cancelled' }
     }
+    return map[order.status] || { text: order.status || '未知', className: 'unknown' }
   }
 
-  // 获取操作按钮
-  const renderActions = (order: Order) => {
-    // 待支付订单 - 显示支付和取消按钮
-    if (order.status === 'pending') {
-      return (
-        <View className='action-buttons'>
-          <Button 
-            className='cancel-btn' 
-            onClick={(e) => {
-              e.stopPropagation()
-              handleCancel(order)
-            }}
-          >
-            取消订单
-          </Button>
-          <Button 
-            className='pay-btn' 
-            onClick={(e) => {
-              e.stopPropagation()
-              handlePay(order)
-            }}
-          >
-            立即支付
-          </Button>
-        </View>
-      )
-    }
-    
-    // 已支付/待使用订单 - 显示确认使用按钮
-    if (order.status === 'paid') {
-      return (
-        <View className='action-buttons'>
-          <Button 
-            className='use-btn' 
-            onClick={(e) => {
-              e.stopPropagation()
-              handleUse(order)
-            }}
-          >
-            确认使用
-          </Button>
-        </View>
-      )
-    }
-    
-    // 已完成/待评价订单 - 显示评价按钮
-    if (order.status === 'completed' && !order.reviewed) {
-      return (
-        <View className='action-buttons'>
-          <Button 
-            className='review-btn' 
-            onClick={(e) => {
-              e.stopPropagation()
-              handleReview(order)
-            }}
-          >
-            我要评价
-          </Button>
-        </View>
-      )
-    }
-    
-    // 已评价订单 - 显示已评价
-    if (order.reviewed) {
-      return (
-        <View className='action-buttons'>
-          <Button className='reviewed-btn' disabled>
-            已评价
-          </Button>
-        </View>
-      )
-    }
-    
-    // 已取消订单 - 显示重新预订
-    if (order.status === 'cancelled') {
-      return (
-        <View className='action-buttons'>
-          <Button 
-            className='rebook-btn'
-            onClick={(e) => {
-              e.stopPropagation()
-              handleRebook(order)
-            }}
-          >
-            重新预订
-          </Button>
-        </View>
-      )
-    }
-    
-    return null
+  // 格式化日期
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return ''
+    return dateStr.split('T')[0] || dateStr
   }
 
   const filteredOrders = filterOrders()
@@ -394,61 +318,34 @@ export default function Order() {
     <View className='order-container'>
       {/* 标签页 */}
       <View className='order-tabs'>
-        <View 
-          className={`tab-item ${activeTab === 'all' ? 'active' : ''}`}
-          onClick={() => setActiveTab('all')}
-        >
-          <Text>全部</Text>
-        </View>
-        <View 
-          className={`tab-item ${activeTab === 'pending' ? 'active' : ''}`}
-          onClick={() => setActiveTab('pending')}
-        >
-          <Text>待支付</Text>
-        </View>
-        <View 
-          className={`tab-item ${activeTab === 'paid' ? 'active' : ''}`}
-          onClick={() => setActiveTab('paid')}
-        >
-          <Text>待使用</Text>
-        </View>
-        <View 
-          className={`tab-item ${activeTab === 'completed' ? 'active' : ''}`}
-          onClick={() => setActiveTab('completed')}
-        >
-          <Text>待评价</Text>
-        </View>
-        <View 
-          className={`tab-item ${activeTab === 'reviewed' ? 'active' : ''}`}
-          onClick={() => setActiveTab('reviewed')}
-        >
-          <Text>已评价</Text>
-        </View>
-        <View 
-          className={`tab-item ${activeTab === 'cancelled' ? 'active' : ''}`}
-          onClick={() => setActiveTab('cancelled')}
-        >
-          <Text>已取消</Text>
-        </View>
+        {[
+          { key: 'all', text: '全部' },
+          { key: 'pending', text: '待支付' },
+          { key: 'paid', text: '待使用' },
+          { key: 'completed', text: '待评价' },
+          { key: 'reviewed', text: '已评价' },
+          { key: 'cancelled', text: '已取消' }
+        ].map(tab => (
+          <View
+            key={tab.key}
+            className={`tab-item ${activeTab === tab.key ? 'active' : ''}`}
+            onClick={() => setActiveTab(tab.key)}
+          >
+            <Text>{tab.text}</Text>
+          </View>
+        ))}
       </View>
 
       {/* 订单列表 */}
       <View className='order-list'>
         {loading ? (
-          <View className='loading-state'>
-            <Text className='loading-text'>加载中...</Text>
-          </View>
+          <View className='loading-state'><Text>加载中...</Text></View>
         ) : filteredOrders.length === 0 ? (
           <View className='empty-state'>
             <Text className='empty-icon'>📦</Text>
             <Text className='empty-text'>暂无订单</Text>
             {activeTab !== 'all' && (
-              <Button 
-                className='view-all-btn'
-                onClick={() => setActiveTab('all')}
-              >
-                查看全部订单
-              </Button>
+              <Button className='view-all-btn' onClick={() => setActiveTab('all')}>查看全部订单</Button>
             )}
           </View>
         ) : (
@@ -456,52 +353,72 @@ export default function Order() {
             const statusInfo = getStatusInfo(order)
             
             return (
-              <View key={order.id || order._id} className='order-card'>
-                {/* 酒店信息 */}
-                <View className='hotel-header' onClick={() => viewDetail(order.hotelId)}>
-                  <Image 
-                    className='hotel-image' 
-                    src={order.hotelImage || 'https://placehold.co/120x120/f5f5f5/999?text=Hotel'} 
-                    mode='aspectFill' 
-                  />
+              <View key={order.id} className='order-card'>
+                {/* 酒店名称和状态 */}
+                <View className='card-header' onClick={() => viewDetail(order.hotelId)}>
                   <View className='hotel-info'>
                     <Text className='hotel-name'>{order.hotelName}</Text>
                     <Text className='room-name'>{order.roomName}</Text>
-                    <Text className='order-time'>{order.orderTime}</Text>
                   </View>
-                  <View className='order-status'>
-                    <Text className={`status-badge ${statusInfo.className}`}>
-                      {statusInfo.text}
-                    </Text>
+                  <Text className={`status-badge ${statusInfo.className}`}>{statusInfo.text}</Text>
+                </View>
+
+                {/* 订单详情网格 */}
+                <View className='detail-grid'>
+                  <View className='detail-item'>
+                    <Text className='label'>入住</Text>
+                    <Text className='value'>{formatDate(order.checkInDate)}</Text>
+                  </View>
+                  <View className='detail-item'>
+                    <Text className='label'>离店</Text>
+                    <Text className='value'>{formatDate(order.checkOutDate)}</Text>
+                  </View>
+                  <View className='detail-item'>
+                    <Text className='label'>天数</Text>
+                    <Text className='value'>{order.nights}晚</Text>
+                  </View>
+                  <View className='detail-item'>
+                    <Text className='label'>房间</Text>
+                    <Text className='value'>{order.roomCount}间</Text>
                   </View>
                 </View>
 
-                {/* 订单详情 */}
-                <View className='order-detail'>
-                  <View className='detail-row'>
-                    <Text className='label'>入住日期</Text>
-                    <Text className='value'>{order.checkInDate}</Text>
-                  </View>
-                  <View className='detail-row'>
-                    <Text className='label'>离店日期</Text>
-                    <Text className='value'>{order.checkOutDate}</Text>
-                  </View>
-                  <View className='detail-row'>
-                    <Text className='label'>共{order.nights || 1}晚</Text>
-                    <Text className='value'>{order.roomCount || 1}间</Text>
-                  </View>
-                  <View className='detail-row'>
-                    <Text className='label'>入住人</Text>
-                    <Text className='value'>{order.guestName} {order.guestPhone}</Text>
-                  </View>
-                  <View className='detail-row total'>
-                    <Text className='label'>实付款</Text>
-                    <Text className='price'>¥{order.totalPrice}</Text>
+                {/* 入住人信息 */}
+                <View className='guest-info'>
+                  <Text className='guest-name'>{order.guestName}</Text>
+                  <Text className='guest-phone'>{order.guestPhone}</Text>
+                </View>
+
+                {/* 订单时间和金额 */}
+                <View className='order-footer'>
+                  <Text className='order-time'>下单时间：{order.orderTime}</Text>
+                  <View className='price-info'>
+                    <Text className='price-label'>实付</Text>
+                    <Text className='price-value'>¥{order.totalPrice}</Text>
                   </View>
                 </View>
 
                 {/* 操作按钮 */}
-                {renderActions(order)}
+                <View className='action-buttons'>
+                  {order.status === 'pending' && (
+                    <>
+                      <Button className='cancel-btn' onClick={() => handleCancel(order)}>取消</Button>
+                      <Button className='pay-btn' onClick={() => handlePay(order)}>支付</Button>
+                    </>
+                  )}
+                  {order.status === 'paid' && (
+                    <Button className='use-btn' onClick={() => handleUse(order)}>确认入住</Button>
+                  )}
+                  {order.status === 'completed' && !order.reviewed && (
+                    <Button className='review-btn' onClick={() => handleReview(order)}>去评价</Button>
+                  )}
+                  {order.reviewed && (
+                    <Button className='reviewed-btn' disabled>已评价</Button>
+                  )}
+                  {order.status === 'cancelled' && (
+                    <Button className='rebook-btn' onClick={() => handleRebook(order)}>重新预订</Button>
+                  )}
+                </View>
               </View>
             )
           })
