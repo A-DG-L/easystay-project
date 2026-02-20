@@ -1,81 +1,52 @@
+/* pages/list/index.scss */
 .hotel-list {
   min-height: 100vh;
-  background-color: #F8F9FA;
-  position: relative;
+  background-color: #f8f8f8;
+  display: flex;
+  flex-direction: column;
 }
 
+// 搜索摘要
 .search-summary {
-  background: white;
-  padding: 24rpx 30rpx;
-  border-bottom: 1rpx solid #D5DBDB;
+  padding: 20rpx 30rpx;
+  background-color: #fff;
+  border-bottom: 1rpx solid #f0f0f0;
   
   .summary-text {
     font-size: 28rpx;
-    color: #5D6D7E;
+    color: #F9C850;
+    font-weight: 500;
   }
 }
 
-.main-content {
-  padding: 20rpx 30rpx;
-}
-
-.loading, .empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  height: 300rpx;
-  font-size: 28rpx;
-  color: #95A5A6;
-  
-  .empty-tip {
-    font-size: 24rpx;
-    color: #BDC3C7;
-    margin-top: 16rpx;
-  }
-}
-
-.hotel-scroll {
-  height: calc(100vh - 100rpx);
-}
-
-// ============ 筛选条件卡片样式 ============
+// 筛选卡片
 .filter-card {
-  background: white;
-  border-radius: 20rpx;
+  background-color: #fff;
+  margin: 20rpx;
   padding: 30rpx;
-  margin: 0 30rpx 20rpx;
-  box-shadow: 0 4rpx 16rpx rgba(93, 109, 126, 0.1);
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
   
   .card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 24rpx;
-    padding-bottom: 16rpx;
-    border-bottom: 1rpx solid #D5DBDB;
+    margin-bottom: 20rpx;
     
     .card-title {
-      font-size: 32rpx;
-      font-weight: bold;
-      color: #5D6D7E;
+      font-size: 30rpx;
+      font-weight: 600;
+      color: #333;
     }
     
     .edit-btn {
-      padding: 12rpx 24rpx;
-      background: #F8F9FA;
-      border: 2rpx solid #D5DBDB;
-      border-radius: 12rpx;
+      padding: 10rpx 24rpx;
+      background-color: #F9C850;
+      border-radius: 30rpx;
       
       .edit-text {
         font-size: 26rpx;
-        color: #8A9A9B;
-        font-weight: 500;
-      }
-      
-      &:active {
-        background: #E8E9EA;
-        transform: scale(0.98);
+        color: #fff;
       }
     }
   }
@@ -83,397 +54,510 @@
   .filter-items {
     .filter-item {
       display: flex;
-      align-items: flex-start;
-      margin-bottom: 20rpx;
+      align-items: baseline;
+      margin-bottom: 12rpx;
+      font-size: 28rpx;
+      line-height: 1.5;
       
       &:last-child {
         margin-bottom: 0;
       }
       
       .filter-label {
-        font-size: 26rpx;
-        color: #95A5A6;
-        font-weight: 500;
-        min-width: 120rpx;
+        color: #999;
+        width: 140rpx;
         flex-shrink: 0;
       }
       
       .filter-value {
-        font-size: 26rpx;
-        color: #5D6D7E;
+        color: #333;
         flex: 1;
-        line-height: 1.4;
       }
     }
   }
 }
 
-// ============ 筛选面板样式 ============
+// 筛选面板
 .filter-panel-mask {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.5);
   z-index: 1000;
   display: flex;
   align-items: flex-end;
-  animation: fadeIn 0.3s ease;
 }
 
 .filter-panel {
-  background: white;
-  border-radius: 40rpx 40rpx 0 0;
+  background-color: #fff;
   width: 100%;
-  height: 80vh;
+  border-radius: 30rpx 30rpx 0 0;
+  max-height: 80vh;
   display: flex;
   flex-direction: column;
-  animation: slideUp 0.3s ease;
-  overflow: hidden;
   
   .panel-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 40rpx 30rpx 20rpx;
-    border-bottom: 1rpx solid #D5DBDB;
+    padding: 30rpx;
+    border-bottom: 1rpx solid #f0f0f0;
     flex-shrink: 0;
     
     .panel-title {
-      font-size: 34rpx;
-      font-weight: bold;
-      color: #5D6D7E;
+      font-size: 32rpx;
+      font-weight: 600;
+      color: #333;
     }
     
     .close-btn {
       width: 60rpx;
       height: 60rpx;
-      border-radius: 50%;
-      background: #F8F9FA;
       display: flex;
       align-items: center;
       justify-content: center;
+      background-color: #f5f5f5;
+      border-radius: 30rpx;
       
       .close-text {
-        font-size: 28rpx;
-        color: #95A5A6;
-      }
-      
-      &:active {
-        background: #E8E9EA;
+        font-size: 36rpx;
+        color: #999;
       }
     }
   }
   
   .panel-content {
     flex: 1;
-    overflow: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    min-height: 0;
     
     .panel-scroll-content {
-      padding: 0 30rpx 40rpx;
+      padding: 20rpx 30rpx;
     }
   }
   
   .panel-section {
-    margin: 40rpx 0;
+    margin-bottom: 40rpx;
     
     .section-title {
-      font-size: 28rpx;
-      color: #5D6D7E;
-      font-weight: 500;
-      margin-bottom: 24rpx;
-      display: block;
-    }
-  }
-  
-  .city-options {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20rpx;
-    margin-bottom: 30rpx;
-    
-    .city-option {
-      background: #F8F9FA;
-      border: 2rpx solid #D5DBDB;
-      border-radius: 12rpx;
-      padding: 24rpx 12rpx;
-      text-align: center;
-      
-      &.active {
-        background: #8A9A9B;
-        border-color: #8A9A9B;
-        
-        .city-text {
-          color: white;
-        }
-      }
-      
-      .city-text {
-        font-size: 26rpx;
-        color: #5D6D7E;
-      }
-      
-      &:active {
-        transform: scale(0.95);
-      }
-    }
-  }
-  
-  .custom-city {
-    text-align: center;
-    padding: 20rpx;
-    background: #F8F9FA;
-    border-radius: 12rpx;
-    
-    .city-hint {
-      font-size: 24rpx;
-      color: #95A5A6;
-    }
-  }
-  
-  .star-options {
-    .star-option {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 28rpx 24rpx;
-      background: #F8F9FA;
-      border: 2rpx solid #D5DBDB;
-      border-radius: 12rpx;
+      font-size: 30rpx;
+      font-weight: 600;
+      color: #333;
       margin-bottom: 20rpx;
-      
-      &:last-child {
-        margin-bottom: 0;
-      }
-      
-      &.active {
-        background: #8A9A9B; 
-        border-color: #8A9A9B; 
-        
-        .option-text {
-          color: white; 
-          font-weight: bold;
-        }
-      }
-      
-      .option-text {
-        font-size: 28rpx;
-        color: #5D6D7E;
-      }
-      
-      .check-mark {
-        font-size: 28rpx;
-        color: transparent;
-      }
-      
-      &:active {
-        background: #E8E9EA;
-        
-        &.active {
-          background: #7A8A8B; 
-        }
-      }
-    }
-  }
-  
-  .keyword-input-container {
-    position: relative;
-    
-    .keyword-input {
-      width: 100%;
-      background: #F8F9FA;
-      border: 2rpx solid #D5DBDB;
-      border-radius: 12rpx;
-      padding: 28rpx 60rpx 28rpx 24rpx;
-      font-size: 28rpx;
-      color: #5D6D7E;
-      box-sizing: border-box;
-      
-      &:focus {
-        border-color: #8A9A9B;
-        outline: none;
-      }
-    }
-    
-    .clear-keyword {
-      position: absolute;
-      right: 20rpx;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 40rpx;
-      height: 40rpx;
-      border-radius: 50%;
-      background: #D5DBDB;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      
-      .clear-text {
-        color: white;
-        font-size: 20rpx;
-      }
-      
-      &:active {
-        background: #BDC3C7;
-      }
-    }
-  }
-  
-  .panel-tips {
-    margin: 40rpx 0;
-    padding: 24rpx;
-    background: #F8F9FA;
-    border-radius: 12rpx;
-    border-left: 6rpx solid #8A9A9B;
-    
-    .tip-text {
-      font-size: 24rpx;
-      color: #95A5A6;
-      line-height: 1.4;
+      display: block;
     }
   }
   
   .panel-actions {
     display: flex;
-    gap: 20rpx;
     padding: 30rpx;
-    border-top: 1rpx solid #D5DBDB;
+    border-top: 1rpx solid #f0f0f0;
+    gap: 20rpx;
     flex-shrink: 0;
-    background: white;
     
     .reset-btn, .apply-btn {
       flex: 1;
-      padding: 28rpx;
-      border-radius: 12rpx;
-      text-align: center;
-      
-      &:active {
-        transform: scale(0.98);
-      }
+      height: 80rpx;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 40rpx;
+      font-size: 30rpx;
     }
     
     .reset-btn {
-      background: #F8F9FA;
-      border: 2rpx solid #D5DBDB;
-      
-      .reset-text {
-        font-size: 30rpx;
-        color: #8A9A9B;
-        font-weight: 500;
-      }
+      background-color: #f5f5f5;
+      color: #666;
     }
     
     .apply-btn {
-      background: #8A9A9B;
-      border: 2rpx solid #8A9A9B;
-      
-      .apply-text {
-        font-size: 30rpx;
-        color: white;
-        font-weight: 500;
-      }
+      background-color: #F9C850;
+      color: #fff;
     }
   }
 }
 
-// ============ 酒店项样式 ============
-.hotel-item {
-  background: white;
-  margin-bottom: 20rpx;
-  border-radius: 20rpx;
-  overflow: hidden;
-  box-shadow: 0 4rpx 16rpx rgba(93, 109, 126, 0.1);
-  display: flex;
-  position: relative;
+// 城市分组样式
+.city-group {
+  margin-bottom: 30rpx;
   
-  &.recommended {
-    border: 2rpx solid #8A9A9B;
-    opacity: 0.95;
+  .group-label {
+    font-size: 26rpx;
+    color: #F9C850;
+    margin-bottom: 16rpx;
+    display: block;
+    font-weight: 500;
+    padding-left: 8rpx;
+  }
+}
+
+// 城市选项容器 - 网格布局
+.city-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+// 可滚动的城市选项容器
+.city-options-scroll {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  max-height: 300rpx;
+  overflow-y: auto;
+  padding: 10rpx 0;
+  margin-bottom: 10rpx;
+  
+  /* 自定义滚动条样式 */
+  &::-webkit-scrollbar {
+    width: 8rpx;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4rpx;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #F9C850;
+    border-radius: 4rpx;
+  }
+  
+  &::-webkit-scrollbar-thumb:hover {
+    background: #e6b848;
+  }
+}
+
+// 单个城市选项
+.city-option {
+  padding: 14rpx 28rpx;
+  background-color: #f5f5f5;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  color: #666;
+  transition: all 0.2s ease;
+  border: 1rpx solid transparent;
+  white-space: nowrap;
+  
+  &.active {
+    background-color: #F9C850;
+    color: #fff;
+    transform: scale(1.02);
+    box-shadow: 0 4rpx 12rpx rgba(249, 200, 80, 0.3);
+  }
+  
+  &:active {
+    opacity: 0.8;
+    transform: scale(0.98);
+  }
+}
+
+.custom-city {
+  margin-top: 16rpx;
+  
+  .city-hint {
+    font-size: 24rpx;
+    color: #F9C850;
+    font-style: italic;
+    display: block;
+    text-align: center;
+    padding: 8rpx 0;
+  }
+}
+
+// 更多城市提示
+.more-hint {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 16rpx;
+  display: block;
+  text-align: center;
+  font-style: italic;
+}
+
+// 星级选项
+.star-options {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  
+  .star-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20rpx;
+    background-color: #f5f5f5;
+    border-radius: 12rpx;
     
-    &::before {
-      content: '推荐';
-      position: absolute;
-      top: 0;
-      right: 0;
-      background: #8A9A9B;
-      color: white;
-      font-size: 20rpx;
-      padding: 4rpx 12rpx;
-      border-bottom-left-radius: 8rpx;
-      z-index: 1;
+    &.active {
+      background-color: #FFF9E6;
+      border: 1rpx solid #F9C850;
+      
+      .option-text {
+        color: #F9C850;
+        font-weight: 500;
+      }
+      
+      .check-mark {
+        color: #F9C850;
+        font-weight: bold;
+      }
+    }
+    
+    .option-text {
+      font-size: 28rpx;
+      color: #666;
+    }
+    
+    .check-mark {
+      font-size: 28rpx;
+      color: #F9C850;
+    }
+  }
+}
+
+// 价格选项
+.price-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16rpx;
+  
+  .price-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20rpx;
+    background-color: #f5f5f5;
+    border-radius: 12rpx;
+    
+    &.active {
+      background-color: #FFF9E6;
+      border: 1rpx solid #F9C850;
+      
+      .option-text {
+        color: #F9C850;
+        font-weight: 500;
+      }
+      
+      .check-mark {
+        color: #F9C850;
+        font-weight: bold;
+      }
+    }
+    
+    .option-text {
+      font-size: 28rpx;
+      color: #666;
+    }
+    
+    .check-mark {
+      font-size: 28rpx;
+      color: #F9C850;
+    }
+  }
+}
+
+// 评分选项
+.score-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  
+  .score-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16rpx 30rpx;
+    background-color: #f5f5f5;
+    border-radius: 40rpx;
+    
+    &.active {
+      background-color: #F9C850;
+      
+      .option-text {
+        color: #fff;
+      }
+      
+      .check-mark {
+        color: #fff;
+      }
+    }
+    
+    .option-text {
+      font-size: 28rpx;
+      color: #666;
+      margin-right: 8rpx;
+    }
+    
+    .check-mark {
+      font-size: 28rpx;
+      color: #F9C850;
+    }
+  }
+}
+
+// 关键词搜索栏 - 加高版本
+.keyword-input-container {
+  position: relative;
+  margin-bottom: 16rpx;
+  
+  .keyword-input {
+    width: 100%;
+    height: 90rpx; // 从原来的70rpx加高到90rpx
+    background-color: #f5f5f5;
+    border-radius: 45rpx;
+    padding: 0 70rpx 0 30rpx;
+    font-size: 30rpx; // 增大字体
+    color: #333;
+    line-height: 90rpx; // 保持垂直居中
+    
+    &::placeholder {
+      color: #95a5a6;
+      font-size: 28rpx;
     }
   }
   
+  .clear-keyword {
+    position: absolute;
+    right: 20rpx;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 50rpx;
+    height: 50rpx;
+    background-color: #ddd;
+    border-radius: 25rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    .clear-text {
+      font-size: 30rpx;
+      color: #fff;
+    }
+  }
+}
+
+.keyword-preview {
+  margin-top: 10rpx;
+  
+  .preview-text {
+    font-size: 26rpx;
+    color: #F9C850;
+  }
+}
+
+.panel-tips {
+  background-color: #FFF9E6;
+  padding: 20rpx;
+  border-radius: 12rpx;
+  margin-top: 20rpx;
+  
+  .tip-text {
+    font-size: 24rpx;
+    color: #F9C850;
+    text-align: center;
+    display: block;
+  }
+}
+
+// 酒店列表
+.hotel-scroll {
+  flex: 1;
+  height: 0; // 重要：让ScrollView正确计算高度
+}
+
+.main-content {
+  padding: 0 20rpx 20rpx;
+}
+
+.hotel-item {
+  display: flex;
+  background-color: #fff;
+  border-radius: 16rpx;
+  margin-bottom: 20rpx;
+  padding: 20rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  
+  &.recommended {
+    background-color: #FFF9E6;
+    border-left: 6rpx solid #F9C850;
+  }
+  
   .hotel-image {
-    width: 240rpx;
-    height: 240rpx;
+    width: 200rpx;
+    height: 200rpx;
+    border-radius: 12rpx;
+    margin-right: 20rpx;
     flex-shrink: 0;
+    background-color: #f0f0f0;
   }
   
   .hotel-info {
     flex: 1;
-    padding: 24rpx;
+    min-width: 0;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    overflow: hidden;
     
     .hotel-header {
       display: flex;
+      align-items: center;
       justify-content: space-between;
-      align-items: flex-start;
       margin-bottom: 12rpx;
-    }
-    
-    .hotel-name {
-      font-size: 32rpx;
-      color: #5D6D7E;
-      font-weight: bold;
-      flex: 1;
-      display: -webkit-box;
-      -webkit-box-orient: vertical;
-      -webkit-line-clamp: 2;
-      overflow: hidden;
-      margin-right: 12rpx;
-    }
-    
-    .unqualified-reason {
-      flex-shrink: 0;
       
-      .reason-tag {
-        background: #F8F9FA;
-        color: #8A9A9B;
-        font-size: 20rpx;
-        padding: 4rpx 8rpx;
-        border-radius: 8rpx;
-        border: 1rpx solid #D5DBDB;
+      .hotel-name {
+        font-size: 32rpx;
+        font-weight: 600;
+        color: #333;
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-right: 16rpx;
       }
       
-      .reason-more {
-        display: none;
+      .unqualified-reason {
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+        
+        .reason-tag {
+          font-size: 22rpx;
+          color: #F9C850;
+          background-color: #FFF0D0;
+          padding: 4rpx 12rpx;
+          border-radius: 20rpx;
+        }
+        
+        .reason-more {
+          font-size: 20rpx;
+          color: #999;
+          margin-left: 8rpx;
+        }
       }
     }
     
     .hotel-meta {
       display: flex;
       align-items: center;
-      gap: 20rpx;
-      margin-bottom: 16rpx;
+      margin-bottom: 12rpx;
       
       .hotel-star {
-        color: #FFD700;
+        color: #F9C850;
         font-size: 24rpx;
-        flex-shrink: 0;
+        margin-right: 16rpx;
       }
       
       .hotel-location {
         font-size: 24rpx;
-        color: #95A5A6;
+        color: #999;
         flex: 1;
+        white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        white-space: nowrap;
       }
     }
     
@@ -481,48 +565,52 @@
       display: flex;
       flex-wrap: wrap;
       gap: 12rpx;
-      margin-bottom: 20rpx;
+      margin-bottom: 12rpx;
       
       .facility-tag {
-        background: #F8F9FA;
-        color: #8A9A9B;
         font-size: 22rpx;
-        padding: 8rpx 16rpx;
-        border-radius: 16rpx;
+        color: #666;
+        background-color: #f5f5f5;
+        padding: 6rpx 16rpx;
+        border-radius: 20rpx;
       }
     }
     
     .hotel-bottom {
       display: flex;
       justify-content: space-between;
-      align-items: flex-end;
+      align-items: center;
       
       .hotel-rating {
+        display: flex;
+        align-items: baseline;
+        
         .rating-score {
           font-size: 36rpx;
-          color: #8A9A9B;
           font-weight: bold;
+          color: #F9C850;
         }
         
         .rating-text {
           font-size: 24rpx;
-          color: #95A5A6;
+          color: #999;
           margin-left: 4rpx;
         }
       }
       
       .hotel-price {
-        text-align: right;
+        display: flex;
+        align-items: baseline;
         
         .price-amount {
-          font-size: 36rpx;
-          color: #C77B7B;
+          font-size: 40rpx;
           font-weight: bold;
+          color: #F9C850;
         }
         
         .price-unit {
           font-size: 24rpx;
-          color: #95A5A6;
+          color: #999;
           margin-left: 4rpx;
         }
       }
@@ -530,199 +618,46 @@
   }
 }
 
-// ============ 推荐区域样式 ============
-.recommended-section {
-  margin-top: 20rpx;
+// 分隔线
+.section-divider {
+  height: 20rpx;
+  background-color: transparent;
+  margin: 20rpx 0;
+}
+
+.section-header {
   margin-bottom: 20rpx;
   
-  .section-divider {
-    height: 1rpx;
-    background: #D5DBDB;
-    margin: 40rpx 0;
-  }
-  
-  .section-header {
-    background: #F8F9FA;
-    border-radius: 12rpx;
-    padding: 24rpx;
-    margin-bottom: 20rpx;
-    border-left: 6rpx solid #8A9A9B;
-    
-    .section-title {
-      font-size: 30rpx;
-      color: #5D6D7E;
-      font-weight: bold;
-      margin-bottom: 8rpx;
-      display: block;
-    }
-    
-    .section-subtitle {
-      font-size: 24rpx;
-      color: #95A5A6;
-      display: block;
-    }
+  .section-title {
+    font-size: 28rpx;
+    color: #999;
   }
 }
 
-// ============ 加载更多样式 ============
-.load-more, .no-more {
+// 加载状态
+.loading, .empty {
+  flex: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40rpx;
+  padding: 100rpx 0;
+  
+  text {
+    font-size: 28rpx;
+    color: #999;
+    text-align: center;
+  }
+  
+  .empty-tip {
+    margin-top: 20rpx;
+    color: #F9C850;
+  }
+}
+
+.load-more, .no-more {
+  text-align: center;
+  padding: 30rpx 0;
   font-size: 26rpx;
-  color: #95A5A6;
-  
-  &.no-more {
-    color: #8A9A9B;
-  }
-}
-
-// ============ 动画效果 ============
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-
-// ============ 响应式调整 ============
-@media (max-width: 375px) {
-  .filter-card {
-    margin: 0 20rpx 16rpx;
-    padding: 24rpx;
-    
-    .card-header {
-      .card-title {
-        font-size: 28rpx;
-      }
-      
-      .edit-btn {
-        padding: 10rpx 20rpx;
-        
-        .edit-text {
-          font-size: 24rpx;
-        }
-      }
-    }
-    
-    .filter-items {
-      .filter-item {
-        .filter-label {
-          font-size: 24rpx;
-          min-width: 100rpx;
-        }
-        
-        .filter-value {
-          font-size: 24rpx;
-        }
-      }
-    }
-  }
-  
-  .main-content {
-    padding: 20rpx 20rpx;
-  }
-  
-  .filter-panel {
-    .panel-header {
-      padding: 30rpx 20rpx 20rpx;
-    }
-    
-    .panel-scroll-content {
-      padding: 0 20rpx 40rpx;
-    }
-    
-    .city-options {
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16rpx;
-      
-      .city-option {
-        padding: 20rpx 8rpx;
-        
-        .city-text {
-          font-size: 24rpx;
-        }
-      }
-    }
-    
-    .star-options .star-option {
-      padding: 24rpx 20rpx;
-      
-      .option-text {
-        font-size: 26rpx;
-      }
-    }
-  }
-  
-  .hotel-item {
-    .hotel-image {
-      width: 200rpx;
-      height: 200rpx;
-    }
-    
-    .hotel-info {
-      padding: 20rpx;
-      
-      .hotel-name {
-        font-size: 28rpx;
-      }
-      
-      .hotel-bottom {
-        .hotel-rating .rating-score,
-        .hotel-price .price-amount {
-          font-size: 32rpx;
-        }
-      }
-    }
-  }
-  
-  .recommended-section {
-    .section-header {
-      padding: 20rpx;
-      
-      .section-title {
-        font-size: 28rpx;
-      }
-    }
-  }
-}
-
-// ============ 悬停效果 ============
-@media (hover: hover) {
-  .hotel-item:hover {
-    box-shadow: 0 8rpx 24rpx rgba(93, 109, 126, 0.15);
-  }
-  
-  .edit-btn:hover {
-    background: #E8E9EA;
-    border-color: #8A9A9B;
-    
-    .edit-text {
-      color: #6D7B7C;
-    }
-  }
-  
-  .city-option:hover, .star-option:hover {
-    background: #E8E9EA;
-  }
-  
-  .reset-btn:hover {
-    background: #E8E9EA;
-  }
-  
-  .apply-btn:hover {
-    background: #7A8A8B;
-  }
+  color: #999;
 }

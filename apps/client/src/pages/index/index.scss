@@ -1,3 +1,4 @@
+/* pages/index/index.scss */
 .ad-swiper {
   width: 100%;
   height: 400rpx;
@@ -22,30 +23,30 @@
   left: 0;
 }
 
-/* 广告标签样式 - 灰底白字，不显眼 */
+/* 广告标签样式 - 使用主色调半透明 */
 .ad-label {
   position: absolute;
-  top: 20rpx; /* 改为右上角，避免遮挡图片内容 */
+  top: 20rpx;
   right: 20rpx;
-  background: rgba(0, 0, 0, 0.4); /* 灰黑色半透明背景 */
-  color: #fff; /* 白色文字 */
+  background: rgba(249, 190, 62, 0.8); /* 主色调半透明 */
+  color: #fff;
   padding: 6rpx 16rpx;
   border-radius: 20rpx;
   font-size: 22rpx;
   font-weight: 500;
-  z-index: 100; /* 提高z-index，确保在最上层 */
-  backdrop-filter: blur(10px); /* 毛玻璃效果 */
+  z-index: 100;
+  backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
   justify-content: center;
   min-width: 60rpx;
-  border: 1px solid rgba(255, 255, 255, 0.2); /* 白色边框增加辨识度 */
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .ad-text {
   font-size: 20rpx;
   font-weight: 500;
-  opacity: 0.9;
+  opacity: 0.95;
 }
 
 /* 点击提示样式 */
@@ -58,7 +59,7 @@
   padding: 6rpx 12rpx;
   border-radius: 16rpx;
   font-size: 20rpx;
-  z-index: 99; /* 比广告标签低一层 */
+  z-index: 99;
   backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
@@ -69,7 +70,7 @@
   opacity: 0.9;
 }
 
-/* 轮播图遮罩层样式调整 - 确保z-index比广告标签低 */
+/* 轮播图遮罩层样式 */
 .banner-overlay {
   position: absolute;
   bottom: 0;
@@ -78,7 +79,7 @@
   background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
   padding: 30rpx 25rpx;
   color: #fff;
-  z-index: 10; /* 比广告标签低 */
+  z-index: 10;
 }
 
 .hotel-name {
@@ -97,7 +98,7 @@
 
 .hotel-star {
   font-size: 24rpx;
-  color: #ffb400;
+  color: #F9BE3E; /* 主色调 */
 }
 
 .hotel-address {
@@ -109,7 +110,7 @@
 }
 
 .hotel-price {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(249, 190, 62, 0.2); /* 主色调半透明 */
   display: inline-block;
   padding: 4rpx 12rpx;
   border-radius: 8rpx;
@@ -119,6 +120,7 @@
 .price-text {
   font-size: 28rpx;
   font-weight: bold;
+  color: #F9BE3E; /* 主色调 */
 }
 
 .loading-banner {
@@ -187,6 +189,12 @@
   background: #f8f9fa;
 }
 
+/* 选中状态样式 */
+.clickable-section.active {
+  border-color: #F9BE3E;
+  box-shadow: 0 0 0 2rpx rgba(249, 190, 62, 0.2);
+}
+
 .city-select-btn,
 .date-select-btn,
 .star-select-btn {
@@ -207,6 +215,10 @@
   font-weight: 500;
 }
 
+.city-name.active {
+  color: #F9BE3E;
+}
+
 .star-label {
   font-size: 28rpx;
   color: #333;
@@ -215,7 +227,7 @@
 }
 
 .star-icons {
-  color: #ffb400;
+  color: #F9BE3E; /* 主色调 */
   font-size: 24rpx;
 }
 
@@ -263,6 +275,10 @@
   display: block;
 }
 
+.date-value.selected {
+  color: #F9BE3E;
+}
+
 .date-week {
   font-size: 22rpx;
   color: #666;
@@ -279,26 +295,28 @@
 .nights-control {
   display: flex;
   align-items: center;
-  background: #f8f9fa;
+  background: #fff5e0; /* 浅主色调背景 */
   border-radius: 20rpx;
   padding: 6rpx 12rpx;
+  border: 1px solid rgba(249, 190, 62, 0.3);
 }
 
 .nights-btn {
   width: 40rpx;
   height: 40rpx;
   line-height: 40rpx;
-  background: #fff;
-  border: 1px solid #e0e0e0;
+  background: #F9BE3E;
+  border: none;
   border-radius: 50%;
   font-size: 24rpx;
-  color: #666;
+  color: #fff;
   padding: 0;
   margin: 0 8rpx;
 }
 
 .nights-btn:active {
-  background: #f0f0f0;
+  background: #e6a92e; /* 稍深的主色调 */
+  transform: scale(0.95);
 }
 
 .nights-text {
@@ -307,6 +325,7 @@
   margin: 0 12rpx;
   min-width: 60rpx;
   text-align: center;
+  font-weight: 600;
 }
 
 .btn-hint-area {
@@ -327,6 +346,13 @@
   border-radius: 12rpx;
   font-size: 28rpx;
   background: #fff;
+  transition: all 0.3s ease;
+}
+
+.keyword-input:focus {
+  border-color: #F9BE3E;
+  box-shadow: 0 0 0 2rpx rgba(249, 190, 62, 0.2);
+  outline: none;
 }
 
 /* 人数和房间数行 */
@@ -351,11 +377,26 @@
   border: 1px solid #e0e0e0;
   border-radius: 12rpx;
   background: #fff;
+  transition: all 0.3s ease;
+}
+
+.count-selector-btn:active {
+  background: #f8f9fa;
+}
+
+.count-selector-btn.selected {
+  border-color: #F9BE3E;
+  background: rgba(249, 190, 62, 0.05);
 }
 
 .count-text {
   font-size: 28rpx;
   color: #333;
+}
+
+.count-text.selected {
+  color: #F9BE3E;
+  font-weight: 500;
 }
 
 .selector-arrow {
@@ -367,25 +408,27 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f8f9fa;
+  background: #fff5e0; /* 浅主色调背景 */
   border-radius: 12rpx;
   padding: 10rpx;
+  border: 1px solid rgba(249, 190, 62, 0.3);
 }
 
 .count-btn {
   width: 50rpx;
   height: 50rpx;
   line-height: 50rpx;
-  background: #fff;
-  border: 1px solid #e0e0e0;
+  background: #F9BE3E;
+  border: none;
   border-radius: 50%;
   font-size: 28rpx;
-  color: #666;
+  color: #fff;
   padding: 0;
 }
 
 .count-btn:active {
-  background: #f0f0f0;
+  background: #e6a92e;
+  transform: scale(0.95);
 }
 
 .room-number {
@@ -408,9 +451,11 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  color: #666;
+  color: #F9BE3E;
   font-size: 24rpx;
   padding: 10rpx;
+  background: rgba(249, 190, 62, 0.1);
+  border-radius: 30rpx;
 }
 
 .toggle-text {
@@ -447,8 +492,8 @@
 }
 
 .star-option.active {
-  border-color: #ff6b00;
-  background: rgba(255, 107, 0, 0.05);
+  border-color: #F9BE3E;
+  background: rgba(249, 190, 62, 0.05);
 }
 
 .star-option-text {
@@ -465,13 +510,13 @@
 }
 
 .star-option-icons {
-  color: #ffb400;
+  color: #F9BE3E; /* 主色调 */
   font-size: 22rpx;
   margin-left: 15rpx;
 }
 
 .check-mark {
-  color: #ff6b00;
+  color: #F9BE3E; /* 主色调 */
   font-size: 24rpx;
   font-weight: bold;
   margin-left: 15rpx;
@@ -505,11 +550,12 @@
 
 .city-chip:active {
   background: #f8f9fa;
+  transform: scale(0.98);
 }
 
 .city-chip.active {
-  border-color: #ff6b00;
-  background: rgba(255, 107, 0, 0.05);
+  border-color: #F9BE3E;
+  background: rgba(249, 190, 62, 0.1);
 }
 
 .chip-text {
@@ -517,23 +563,31 @@
   color: #333;
 }
 
+.chip-text.active {
+  color: #F9BE3E;
+  font-weight: 500;
+}
+
 /* 搜索按钮 */
 .search-btn {
   width: 100%;
   height: 90rpx;
   line-height: 90rpx;
-  background: linear-gradient(135deg, #ff6b00, #ff8c00);
+  background: #F9BE3E; /* 主色调 */
   color: #fff;
   border: none;
   border-radius: 45rpx;
   font-size: 32rpx;
   font-weight: 600;
   margin-top: 30rpx;
-  box-shadow: 0 6rpx 20rpx rgba(255, 107, 0, 0.3);
+  box-shadow: 0 6rpx 20rpx rgba(249, 190, 62, 0.3);
+  transition: all 0.3s ease;
 }
 
 .search-btn:active {
   opacity: 0.9;
+  transform: translateY(2rpx);
+  box-shadow: 0 4rpx 12rpx rgba(249, 190, 62, 0.4);
 }
 
 /* 响应式调整 */
@@ -549,4 +603,40 @@
   .search-card {
     padding: 20rpx;
   }
+}
+
+/* 自定义滚动条样式（如果需要） */
+::-webkit-scrollbar {
+  width: 6rpx;
+  height: 6rpx;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3rpx;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #F9BE3E;
+  border-radius: 3rpx;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #e6a92e;
+}
+
+/* 通用选中状态样式 */
+.selected {
+  color: #F9BE3E !important;
+  border-color: #F9BE3E !important;
+}
+
+/* 通用悬停效果 */
+.hover-effect {
+  transition: all 0.3s ease;
+}
+
+.hover-effect:hover {
+  transform: translateY(-2rpx);
+  box-shadow: 0 6rpx 16rpx rgba(249, 190, 62, 0.2);
 }

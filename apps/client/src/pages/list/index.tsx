@@ -10,6 +10,9 @@ interface SearchParams {
   keyword?: string;
   minStar?: string;
   maxStar?: string;
+  minPrice?: string;
+  maxPrice?: string;
+  minScore?: string;
   checkInDate?: string;
   checkOutDate?: string;
   guests?: string;
@@ -38,6 +41,91 @@ interface StarOption {
   maxStar: string;
 }
 
+// 评分选项类型
+interface ScoreOption {
+  label: string;
+  minScore: string;
+}
+
+// 价格选项类型
+interface PriceOption {
+  label: string;
+  minPrice: string;
+  maxPrice: string;
+}
+
+// 城市数据
+const CITIES = [
+  { label: '安庆', value: '安庆', pinyin: 'anqing' },
+  { label: '安阳', value: '安阳', pinyin: 'anyang' },
+  { label: '北京', value: '北京', pinyin: 'beijing' },
+  { label: '包头', value: '包头', pinyin: 'baotou' },
+  { label: '保定', value: '保定', pinyin: 'baoding' },
+  { label: '成都', value: '成都', pinyin: 'chengdu' },
+  { label: '重庆', value: '重庆', pinyin: 'chongqing' },
+  { label: '长沙', value: '长沙', pinyin: 'changsha' },
+  { label: '长春', value: '长春', pinyin: 'changchun' },
+  { label: '大连', value: '大连', pinyin: 'dalian' },
+  { label: '东莞', value: '东莞', pinyin: 'dongguan' },
+  { label: '大理', value: '大理', pinyin: 'dali' },
+  { label: '大庆', value: '大庆', pinyin: 'daqin' },
+  { label: '福州', value: '福州', pinyin: 'fuzhou' },
+  { label: '佛山', value: '佛山', pinyin: 'foshan' },
+  { label: '广州', value: '广州', pinyin: 'guangzhou' },
+  { label: '贵阳', value: '贵阳', pinyin: 'guiyang' },
+  { label: '桂林', value: '桂林', pinyin: 'guilin' },
+  { label: '杭州', value: '杭州', pinyin: 'hangzhou' },
+  { label: '合肥', value: '合肥', pinyin: 'hefei' },
+  { label: '哈尔滨', value: '哈尔滨', pinyin: 'haerbin' },
+  { label: '海口', value: '海口', pinyin: 'haikou' },
+  { label: '呼和浩特', value: '呼和浩特', pinyin: 'huhehaote' },
+  { label: '济南', value: '济南', pinyin: 'jinan' },
+  { label: '嘉兴', value: '嘉兴', pinyin: 'jiaxing' },
+  { label: '九江', value: '九江', pinyin: 'jiujiang' },
+  { label: '昆明', value: '昆明', pinyin: 'kunming' },
+  { label: '开封', value: '开封', pinyin: 'kaifeng' },
+  { label: '兰州', value: '兰州', pinyin: 'lanzhou' },
+  { label: '洛阳', value: '洛阳', pinyin: 'luoyang' },
+  { label: '临沂', value: '临沂', pinyin: 'linyi' },
+  { label: '拉萨', value: '拉萨', pinyin: 'lasa' },
+  { label: '绵阳', value: '绵阳', pinyin: 'mianyang' },
+  { label: '牡丹江', value: '牡丹江', pinyin: 'mudanjiang' },
+  { label: '南京', value: '南京', pinyin: 'nanjing' },
+  { label: '宁波', value: '宁波', pinyin: 'ningbo' },
+  { label: '南昌', value: '南昌', pinyin: 'nanchang' },
+  { label: '南宁', value: '南宁', pinyin: 'nanning' },
+  { label: '青岛', value: '青岛', pinyin: 'qingdao' },
+  { label: '泉州', value: '泉州', pinyin: 'quanzhou' },
+  { label: '秦皇岛', value: '秦皇岛', pinyin: 'qinhuangdao' },
+  { label: '上海', value: '上海', pinyin: 'shanghai' },
+  { label: '深圳', value: '深圳', pinyin: 'shenzhen' },
+  { label: '苏州', value: '苏州', pinyin: 'suzhou' },
+  { label: '沈阳', value: '沈阳', pinyin: 'shenyang' },
+  { label: '石家庄', value: '石家庄', pinyin: 'shijiazhuang' },
+  { label: '绍兴', value: '绍兴', pinyin: 'shaoxing' },
+  { label: '天津', value: '天津', pinyin: 'tianjin' },
+  { label: '太原', value: '太原', pinyin: 'taiyuan' },
+  { label: '唐山', value: '唐山', pinyin: 'tangshan' },
+  { label: '武汉', value: '武汉', pinyin: 'wuhan' },
+  { label: '无锡', value: '无锡', pinyin: 'wuxi' },
+  { label: '温州', value: '温州', pinyin: 'wenzhou' },
+  { label: '乌鲁木齐', value: '乌鲁木齐', pinyin: 'wulumuqi' },
+  { label: '西安', value: '西安', pinyin: 'xian' },
+  { label: '厦门', value: '厦门', pinyin: 'xiamen' },
+  { label: '徐州', value: '徐州', pinyin: 'xuzhou' },
+  { label: '西宁', value: '西宁', pinyin: 'xining' },
+  { label: '烟台', value: '烟台', pinyin: 'yantai' },
+  { label: '扬州', value: '扬州', pinyin: 'yangzhou' },
+  { label: '银川', value: '银川', pinyin: 'yinchuan' },
+  { label: '郑州', value: '郑州', pinyin: 'zhengzhou' },
+  { label: '珠海', value: '珠海', pinyin: 'zhuhai' },
+  { label: '淄博', value: '淄博', pinyin: 'zibo' },
+  { label: '张家界', value: '张家界', pinyin: 'zhangjiajie' },
+].sort((a, b) => a.pinyin.localeCompare(b.pinyin))
+
+// 热门城市（前10个）
+const POPULAR_CITIES = ['北京', '上海', '广州', '深圳', '杭州', '成都', '西安', '南京', '重庆', '厦门']
+
 export default function HotelList() {
   const router = useRouter()
   const [qualifiedHotels, setQualifiedHotels] = useState<Hotel[]>([])
@@ -49,6 +137,7 @@ export default function HotelList() {
   const [showFilterPanel, setShowFilterPanel] = useState(false)
   const [filterParams, setFilterParams] = useState<SearchParams>({})
   const [tempFilterParams, setTempFilterParams] = useState<SearchParams>({})
+  const [allCities] = useState<string[]>(CITIES.map(city => city.label))
   
   // 星级选项配置
   const starOptions: StarOption[] = [
@@ -58,9 +147,24 @@ export default function HotelList() {
     { label: '豪华型(5星)', minStar: '5', maxStar: '5' }
   ]
   
-  // 热门城市选项
-  const popularCities = ['北京', '上海', '广州', '深圳', '杭州', '成都', '西安', '南京']
+  // 评分选项配置
+  const scoreOptions: ScoreOption[] = [
+    { label: '不限评分', minScore: '0' },
+    { label: '4.5分以上', minScore: '4.5' },
+    { label: '4.0分以上', minScore: '4.0' },
+    { label: '3.5分以上', minScore: '3.5' }
+  ]
   
+  // 价格选项配置
+  const priceOptions: PriceOption[] = [
+    { label: '不限价格', minPrice: '0', maxPrice: '99999' },
+    { label: '300元以下', minPrice: '0', maxPrice: '300' },
+    { label: '300-500元', minPrice: '300', maxPrice: '500' },
+    { label: '500-800元', minPrice: '500', maxPrice: '800' },
+    { label: '800-1200元', minPrice: '800', maxPrice: '1200' },
+    { label: '1200元以上', minPrice: '1200', maxPrice: '99999' }
+  ]
+
   // 解码URL参数
   const decodeParams = (params: any): SearchParams => {
     const decoded: SearchParams = {}
@@ -69,7 +173,6 @@ export default function HotelList() {
       const value = params[key]
       if (typeof value === 'string') {
         try {
-          // 解码URL编码的参数
           decoded[key] = decodeURIComponent(value)
         } catch (e) {
           console.warn(`参数解码失败 ${key}:`, value, e)
@@ -113,6 +216,9 @@ export default function HotelList() {
       addFilter('keyword', params.keyword?.trim())
       addFilter('minStar', params.minStar ? Number(params.minStar) : null)
       addFilter('maxStar', params.maxStar ? Number(params.maxStar) : null)
+      addFilter('minPrice', params.minPrice ? Number(params.minPrice) : null)
+      addFilter('maxPrice', params.maxPrice ? Number(params.maxPrice) : null)
+      addFilter('minScore', params.minScore ? Number(params.minScore) : null)
       addFilter('checkInDate', params.checkInDate)
       addFilter('checkOutDate', params.checkOutDate)
       
@@ -140,7 +246,7 @@ export default function HotelList() {
           setQualifiedHotels(prev => [...prev, ...qualified])
         }
         
-        setTotal(qualified.length)
+        setTotal(res.data.total || qualified.length)
         setCurrentPage(page)
         
         // 检查是否还有更多数据
@@ -206,6 +312,26 @@ export default function HotelList() {
         }
       }
       
+      // 验证价格
+      if (isQualified && params.minPrice && params.maxPrice) {
+        const minPrice = Number(params.minPrice)
+        const maxPrice = Number(params.maxPrice)
+        
+        if (hotel.minPrice < minPrice || hotel.minPrice > maxPrice) {
+          isQualified = false
+        }
+      }
+      
+      // 验证评分
+      if (isQualified && params.minScore) {
+        const minScore = Number(params.minScore)
+        const hotelScore = hotel.score || 0
+        
+        if (hotelScore < minScore) {
+          isQualified = false
+        }
+      }
+      
       isQualified ? qualified.push(hotel) : unqualified.push(hotel)
     })
     
@@ -234,10 +360,21 @@ export default function HotelList() {
           score += Math.max(0, 5 - starDiff)
         }
         
+        // 价格接近加分
+        if (params.minPrice && params.maxPrice) {
+          const minPrice = Number(params.minPrice)
+          const maxPrice = Number(params.maxPrice)
+          const targetPrice = (minPrice + maxPrice) / 2
+          const priceDiff = Math.abs(hotel.minPrice - targetPrice) / 100
+          score += Math.max(0, 5 - priceDiff)
+        }
+        
         // 高评分酒店加分
         if (hotel.score && hotel.score >= 4.5) {
-          score += 2
+          score += 3
         } else if (hotel.score && hotel.score >= 4.0) {
+          score += 2
+        } else if (hotel.score && hotel.score >= 3.5) {
           score += 1
         }
         
@@ -268,6 +405,26 @@ export default function HotelList() {
       }
     }
     
+    if (filterParams.minPrice && filterParams.maxPrice) {
+      const minPrice = Number(filterParams.minPrice)
+      const maxPrice = Number(filterParams.maxPrice)
+      
+      if (hotel.minPrice < minPrice) {
+        reasons.push(`价格低于${minPrice}元`)
+      } else if (hotel.minPrice > maxPrice) {
+        reasons.push(`价格高于${maxPrice}元`)
+      }
+    }
+    
+    if (filterParams.minScore) {
+      const minScore = Number(filterParams.minScore)
+      const hotelScore = hotel.score || 0
+      
+      if (hotelScore < minScore) {
+        reasons.push(`评分低于${minScore}分`)
+      }
+    }
+    
     if (filterParams.city && hotel.city !== filterParams.city && 
         !hotel.address?.includes(filterParams.city)) {
       reasons.push(`不在${filterParams.city}`)
@@ -294,7 +451,7 @@ export default function HotelList() {
     }
   }
   
-  // 跳转到酒店详情页(/pages/hotel-detail/index)
+  // 跳转到酒店详情页
   const goToHotelDetail = (hotelId: string) => {
     navigateTo({
       url: `/pages/hotel-detail/index?id=${hotelId}`
@@ -331,6 +488,33 @@ export default function HotelList() {
     return `${minStar}-${maxStar}星`
   }
   
+  // 获取价格描述
+  const getPriceDescription = () => {
+    if (!filterParams.minPrice || !filterParams.maxPrice) return '不限价格'
+    
+    const minPrice = Number(filterParams.minPrice)
+    const maxPrice = Number(filterParams.maxPrice)
+    
+    if (minPrice === 0 && maxPrice === 99999) return '不限价格'
+    if (minPrice === 0 && maxPrice === 300) return '300元以下'
+    if (minPrice === 1200 && maxPrice === 99999) return '1200元以上'
+    
+    return `${minPrice}-${maxPrice}元`
+  }
+  
+  // 获取评分描述
+  const getScoreDescription = () => {
+    if (!filterParams.minScore) return '不限评分'
+    
+    const minScore = Number(filterParams.minScore)
+    
+    if (minScore === 4.5) return '4.5分以上'
+    if (minScore === 4.0) return '4.0分以上'
+    if (minScore === 3.5) return '3.5分以上'
+    
+    return `${minScore}分以上`
+  }
+  
   // 打开筛选面板
   const openFilterPanel = () => {
     setTempFilterParams({ ...filterParams })
@@ -358,6 +542,17 @@ export default function HotelList() {
   const selectTempStarOption = (option: StarOption) => {
     updateTempFilter('minStar', option.minStar)
     updateTempFilter('maxStar', option.maxStar)
+  }
+  
+  // 选择临时评分
+  const selectTempScoreOption = (option: ScoreOption) => {
+    updateTempFilter('minScore', option.minScore)
+  }
+  
+  // 选择临时价格
+  const selectTempPriceOption = (option: PriceOption) => {
+    updateTempFilter('minPrice', option.minPrice)
+    updateTempFilter('maxPrice', option.maxPrice)
   }
   
   // 清空临时关键词
@@ -388,10 +583,24 @@ export default function HotelList() {
     return option.minStar === currentMin && option.maxStar === currentMax
   }
   
+  // 检查评分选项是否选中
+  const isScoreOptionSelected = (option: ScoreOption) => {
+    const currentMin = tempFilterParams.minScore || '0'
+    return option.minScore === currentMin
+  }
+  
+  // 检查价格选项是否选中
+  const isPriceOptionSelected = (option: PriceOption) => {
+    const currentMin = tempFilterParams.minPrice || '0'
+    const currentMax = tempFilterParams.maxPrice || '99999'
+    return option.minPrice === currentMin && option.maxPrice === currentMax
+  }
+  
   // 渲染筛选条件卡片
   const renderFilterCard = () => {
     const hasFilters = filterParams.city || filterParams.keyword || 
-                      filterParams.minStar || filterParams.checkInDate
+                      filterParams.minStar || filterParams.minPrice || 
+                      filterParams.minScore || filterParams.checkInDate
     
     return (
       <View className='filter-card'>
@@ -434,6 +643,20 @@ export default function HotelList() {
             </View>
           )}
           
+          {filterParams.minPrice && filterParams.maxPrice && (
+            <View className='filter-item'>
+              <Text className='filter-label'>价格：</Text>
+              <Text className='filter-value'>{getPriceDescription()}</Text>
+            </View>
+          )}
+          
+          {filterParams.minScore && (
+            <View className='filter-item'>
+              <Text className='filter-label'>评分：</Text>
+              <Text className='filter-value'>{getScoreDescription()}</Text>
+            </View>
+          )}
+          
           {(filterParams.guests || filterParams.rooms) && (
             <View className='filter-item'>
               <Text className='filter-label'>入住信息：</Text>
@@ -470,24 +693,48 @@ export default function HotelList() {
           
           <ScrollView className='panel-content' scrollY scrollWithAnimation>
             <View className='panel-scroll-content'>
+              {/* 城市选择 */}
               <View className='panel-section'>
                 <Text className='section-title'>选择城市</Text>
-                <View className='city-options'>
-                  {popularCities.map((city) => (
-                    <View 
-                      key={city}
-                      className={`city-option ${tempFilterParams.city === city ? 'active' : ''}`}
-                      onClick={() => selectTempCity(city)}
-                    >
-                      <Text className='city-text'>{city}</Text>
-                    </View>
-                  ))}
+                
+                {/* 热门城市 */}
+                <View className='city-group'>
+                  <Text className='group-label'>热门城市</Text>
+                  <View className='city-options'>
+                    {POPULAR_CITIES.map((city) => (
+                      <View 
+                        key={city}
+                        className={`city-option ${tempFilterParams.city === city ? 'active' : ''}`}
+                        onClick={() => selectTempCity(city)}
+                      >
+                        <Text className='city-text'>{city}</Text>
+                      </View>
+                    ))}
+                  </View>
                 </View>
+                
+                {/* 全部城市 */}
+                <View className='city-group'>
+                  <Text className='group-label'>全部城市</Text>
+                  <View className='city-options-scroll'>
+                    {allCities.map((city) => (
+                      <View 
+                        key={city}
+                        className={`city-option ${tempFilterParams.city === city ? 'active' : ''}`}
+                        onClick={() => selectTempCity(city)}
+                      >
+                        <Text className='city-text'>{city}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+                
                 <View className='custom-city'>
-                  <Text className='city-hint'>其他城市请在首页选择</Text>
+                  <Text className='city-hint'>支持以上所有城市，也可输入关键词搜索</Text>
                 </View>
               </View>
               
+              {/* 星级选择 */}
               <View className='panel-section'>
                 <Text className='section-title'>酒店星级</Text>
                 <View className='star-options'>
@@ -504,6 +751,41 @@ export default function HotelList() {
                 </View>
               </View>
               
+              {/* 价格选择 */}
+              <View className='panel-section'>
+                <Text className='section-title'>价格范围</Text>
+                <View className='price-options'>
+                  {priceOptions.map((option) => (
+                    <View 
+                      key={option.label}
+                      className={`price-option ${isPriceOptionSelected(option) ? 'active' : ''}`}
+                      onClick={() => selectTempPriceOption(option)}
+                    >
+                      <Text className='option-text'>{option.label}</Text>
+                      {isPriceOptionSelected(option) && <Text className='check-mark'>✓</Text>}
+                    </View>
+                  ))}
+                </View>
+              </View>
+              
+              {/* 评分选择 */}
+              <View className='panel-section'>
+                <Text className='section-title'>用户评分</Text>
+                <View className='score-options'>
+                  {scoreOptions.map((option) => (
+                    <View 
+                      key={option.label}
+                      className={`score-option ${isScoreOptionSelected(option) ? 'active' : ''}`}
+                      onClick={() => selectTempScoreOption(option)}
+                    >
+                      <Text className='option-text'>{option.label}</Text>
+                      {isScoreOptionSelected(option) && <Text className='check-mark'>✓</Text>}
+                    </View>
+                  ))}
+                </View>
+              </View>
+              
+              {/* 关键词搜索 - 加高搜索栏 */}
               <View className='panel-section'>
                 <Text className='section-title'>关键词搜索</Text>
                 <View className='keyword-input-container'>
@@ -513,7 +795,7 @@ export default function HotelList() {
                     placeholder='输入酒店名、地址等关键词'
                     value={tempFilterParams.keyword || ''}
                     onInput={handleTempKeywordChange}
-                    placeholderStyle='color: #BDC3C7;'
+                    placeholderStyle='color: #95a5a6; font-size: 28rpx;'
                     confirmType='search'
                     adjustPosition={false}
                   />
@@ -593,7 +875,7 @@ export default function HotelList() {
           
           <View className='hotel-bottom'>
             <View className='hotel-rating'>
-              <Text className='rating-score'>{hotel.score || 4.5}</Text>
+              <Text className='rating-score'>{hotel.score?.toFixed(1) || '4.5'}</Text>
               <Text className='rating-text'>分</Text>
             </View>
             
@@ -642,7 +924,6 @@ export default function HotelList() {
                 <View className='section-divider'></View>
                 <View className='section-header'>
                   <Text className='section-title'>以下酒店不满足条件，但为您推荐</Text>
-                  <Text className='section-subtitle'>根据您的搜索偏好推荐</Text>
                 </View>
                 {recommendedHotels.map(hotel => renderHotelItem(hotel, true))}
               </>
