@@ -88,9 +88,37 @@ const request = async (options: any) => {
 
 // 获取完整图片URL
 const getFullImageUrl = (url?: string) => {
-  if (!url) return DEFAULT_IMAGE
-  if (url.startsWith('http')) return url
-  return `${BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`
+  console.log('getFullImageUrl输入:', url);
+  
+  if (!url) {
+    console.log('URL为空，使用默认图片');
+    return DEFAULT_IMAGE;
+  }
+  
+  // 已经是完整URL
+  if (url.startsWith('http')) {
+    console.log('已经是完整URL:', url);
+    return url;
+  }
+  
+  // 处理不同格式的路径
+  let fullUrl = '';
+  
+  // 如果以 / 开头，直接拼接
+  if (url.startsWith('/')) {
+    fullUrl = `${BASE_URL}${url}`;
+  } 
+  // 如果以 uploads/ 开头
+  else if (url.startsWith('uploads/')) {
+    fullUrl = `${BASE_URL}/${url}`;
+  }
+  // 其他情况
+  else {
+    fullUrl = `${BASE_URL}/${url}`;
+  }
+  
+  console.log('拼接后的完整URL:', fullUrl);
+  return fullUrl;
 }
 
 export default function HotelDetail() {
@@ -112,6 +140,7 @@ export default function HotelDetail() {
     orderId: ''
   })
   const [uploading, setUploading] = useState(false)
+  const [showAllComments, setShowAllComments] = useState(false) // 控制是否显示全部评论
 
   // 加载酒店详情
   const loadHotelDetail = async () => {
@@ -167,13 +196,29 @@ export default function HotelDetail() {
         setRooms(roomsData.map((r: any) => {
           console.log('单个房型数据:', r)
           
+          // 打印所有可能的图片字段
+          console.log('imageUrl:', r.imageUrl);
+          console.log('images:', r.images);
+          console.log('image:', r.image);
+          
           // 处理房型图片
           let roomImage = DEFAULT_IMAGE
-          if (r.images && Array.isArray(r.images) && r.images.length > 0) {
+          let originalImageUrl = ''
+          
+          // 按优先级尝试不同的图片字段
+          if (r.imageUrl) {
+            originalImageUrl = r.imageUrl
+            roomImage = getFullImageUrl(r.imageUrl)
+          } else if (r.images && Array.isArray(r.images) && r.images.length > 0) {
+            originalImageUrl = r.images[0]
             roomImage = getFullImageUrl(r.images[0])
           } else if (r.image) {
+            originalImageUrl = r.image
             roomImage = getFullImageUrl(r.image)
           }
+          
+          console.log('原始图片URL:', originalImageUrl);
+          console.log('处理后图片URL:', roomImage);
           
           return {
             _id: r._id,
@@ -242,6 +287,7 @@ export default function HotelDetail() {
         
         console.log('格式化后的评论:', formattedComments)
         setComments(formattedComments)
+        setShowAllComments(false) // 重置显示状态
       }
     } catch (error) {
       console.error('加载评论失败:', error)
@@ -279,6 +325,28 @@ export default function HotelDetail() {
     } catch (error) {
       showToast({ title: '操作失败', icon: 'none' })
     }
+  }
+
+  // 记录足迹 (静默调用) - 根据接口文档 POST /api/history
+  const recordHistory = () => {
+    const token = Taro.getStorageSync('token')
+    if (!token || !hotelId) return
+    
+    // 静默调用，不等待结果，也不处理错误
+    Taro.request({
+      url: `${BASE_URL}/api/history`,
+      method: 'POST',
+      header: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      data: { hotelId }
+    }).then(() => {
+      console.log('足迹记录成功')
+    }).catch(err => {
+      // 静默失败，不显示任何提示
+      console.log('记录足迹失败（可忽略）:', err)
+    })
   }
 
   // 评论相关
@@ -423,8 +491,16 @@ export default function HotelDetail() {
     }
   }
 
+  // 处理查看全部评论
+  const handleViewAllComments = () => {
+    setShowAllComments(!showAllComments)
+  }
+
   useLoad(() => {
-    if (hotelId) loadHotelDetail()
+    if (hotelId) {
+      loadHotelDetail() // 加载酒店详情
+      recordHistory() // 静默记录足迹 (不等待，不阻塞)
+    }
   })
 
   if (loading) {
@@ -443,6 +519,9 @@ export default function HotelDetail() {
       </View>
     )
   }
+
+  // 根据是否显示全部评论来决定显示的评论列表
+  const displayComments = showAllComments ? comments : comments.slice(0, 3)
 
   return (
     <View className='hotel-detail'>
@@ -515,6 +594,40 @@ export default function HotelDetail() {
           </View>
         )}
 
+        {/* 房型 - 放在评论上面 */}
+        <View className='section'>
+          <Text className='section-title'>可选房型</Text>
+          {rooms.length === 0 ? (
+            <Text className='empty-text'>暂无房型</Text>
+          ) : (
+            rooms.map(room => (
+              <View key={room._id} className='room-card'>
+                <SafeImage 
+                  src={room.images[0]}
+                  className='room-image'
+                  mode='aspectFill'
+                  defaultSrc={DEFAULT_IMAGE}
+                />
+                <View className='room-info'>
+                  <Text className='room-name'>{room.name}</Text>
+                  <Text className='room-desc'>{room.description}</Text>
+                  <View className='room-footer'>
+                    <Text className='room-price'>¥{room.price}<Text className='unit'>/晚</Text></Text>
+                    <Button 
+                      className='book-btn'
+                      onClick={() => navigateTo({ 
+                        url: `/pages/booking/index?hotelId=${hotelId}&roomId=${room._id}&roomName=${encodeURIComponent(room.name)}&roomPrice=${room.price}&hotelName=${encodeURIComponent(hotel.name)}&hotelImage=${encodeURIComponent(hotel.images[0])}`
+                      })}
+                    >
+                      预订
+                    </Button>
+                  </View>
+                </View>
+              </View>
+            ))
+          )}
+        </View>
+
         {/* 评论 */}
         <View className='section'>
           <View className='section-header'>
@@ -526,7 +639,7 @@ export default function HotelDetail() {
             <Text className='empty-text'>暂无评价</Text>
           ) : (
             <View className='comments'>
-              {comments.slice(0, 3).map(comment => (
+              {displayComments.map(comment => (
                 <View key={comment._id} className='comment'>
                   <View className='comment-header'>
                     <SafeImage 
@@ -559,46 +672,16 @@ export default function HotelDetail() {
                   )}
                 </View>
               ))}
+              
               {comments.length > 3 && (
-                <Button className='more-btn' onClick={() => {}}>
-                  查看全部 {comments.length} 条评价
+                <Button 
+                  className='more-btn' 
+                  onClick={handleViewAllComments}
+                >
+                  {showAllComments ? '收起评论' : `查看全部 ${comments.length} 条评价`}
                 </Button>
               )}
             </View>
-          )}
-        </View>
-
-        {/* 房型 */}
-        <View className='section'>
-          <Text className='section-title'>可选房型</Text>
-          {rooms.length === 0 ? (
-            <Text className='empty-text'>暂无房型</Text>
-          ) : (
-            rooms.map(room => (
-              <View key={room._id} className='room-card'>
-                <SafeImage 
-                  src={room.images[0]}
-                  className='room-image'
-                  mode='aspectFill'
-                  defaultSrc={DEFAULT_IMAGE}
-                />
-                <View className='room-info'>
-                  <Text className='room-name'>{room.name}</Text>
-                  <Text className='room-desc'>{room.description}</Text>
-                  <View className='room-footer'>
-                    <Text className='room-price'>¥{room.price}<Text className='unit'>/晚</Text></Text>
-                    <Button 
-                      className='book-btn'
-                      onClick={() => navigateTo({ 
-                        url: `/pages/booking/index?hotelId=${hotelId}&roomId=${room._id}&roomName=${encodeURIComponent(room.name)}&roomPrice=${room.price}&hotelName=${encodeURIComponent(hotel.name)}&hotelImage=${encodeURIComponent(hotel.images[0])}`
-                      })}
-                    >
-                      预订
-                    </Button>
-                  </View>
-                </View>
-              </View>
-            ))
           )}
         </View>
 

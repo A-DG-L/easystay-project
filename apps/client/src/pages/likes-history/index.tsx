@@ -1,5 +1,5 @@
 import { View, Text, Image, ScrollView, Button } from '@tarojs/components'
-import { useLoad, navigateBack, navigateTo, showModal, showToast } from '@tarojs/taro'
+import { useLoad, useDidShow, navigateBack, navigateTo, showModal, showToast } from '@tarojs/taro'
 import { useState, useEffect } from 'react'
 import Taro from '@tarojs/taro'
 import './index.scss'
@@ -76,8 +76,10 @@ const request = async (options: {
   }
 }
 
-// 获取单个酒店详情（改用GET请求单个获取）
+// 获取单个酒店详情
 const getHotelDetail = async (hotelId: string): Promise<HotelItem> => {
+  console.log('正在获取酒店详情, hotelId:', hotelId)
+  
   try {
     // 尝试从API获取单个酒店
     const data = await request({
@@ -85,6 +87,8 @@ const getHotelDetail = async (hotelId: string): Promise<HotelItem> => {
       method: 'GET',
       needAuth: false
     })
+    
+    console.log('API返回的酒店详情:', data)
     
     return {
       _id: data._id || hotelId,
@@ -103,12 +107,14 @@ const getHotelDetail = async (hotelId: string): Promise<HotelItem> => {
     const found = savedCollections.find((item: HotelItem) => item._id === hotelId)
     
     if (found) {
+      console.log('从本地收藏中找到酒店:', found)
       return {
         ...found,
         viewedAt: new Date().toISOString()
       }
     } else {
       // 如果本地也没有，创建默认数据
+      console.log('使用默认酒店数据')
       return {
         _id: hotelId,
         name: '酒店',
@@ -247,53 +253,67 @@ export default function LikesHistory() {
     }
   }
 
-  // 加载浏览记录 - 优化版本
+  // 加载浏览记录 - 从后端获取
   const loadViewHistory = async () => {
     try {
       setLoading(true)
       
-      // 从本地存储加载浏览记录ID
-      const savedHistory = Taro.getStorageSync('hotel_view_history') || []
-      
-      if (savedHistory.length === 0) {
+      const token = getToken()
+      if (!token) {
         setViewHistory([])
         return
       }
       
-      // 提取酒店ID
-      const hotelIds = savedHistory.map((item: any) => item._id || item.hotelId)
+      console.log('开始从后端获取浏览记录')
       
-      // 批量获取酒店详情（串行避免405错误）
-      const hotelDetails = await getHotelDetails(hotelIds)
-      
-      // 合并浏览时间和酒店详情
-      const formattedHistory = hotelDetails.map((hotel, index) => {
-        const historyItem = savedHistory[index]
-        return {
-          ...hotel,
-          viewedAt: historyItem?.viewedAt || new Date().toISOString()
-        }
+      // 从后端获取浏览记录
+      const historyData = await request({
+        url: '/history',
+        method: 'GET',
+        needAuth: true
       })
       
-      setViewHistory(formattedHistory)
+      console.log('浏览记录接口返回:', historyData)
+      
+      if (Array.isArray(historyData)) {
+        // 格式化数据 - 根据接口文档，返回的应该是包含 hotelId 对象的数组
+        const formattedHistory = historyData.map((item: any) => {
+          // 从返回的数据中提取酒店信息
+          const hotelInfo = item.hotelId || item
+          
+          return {
+            _id: hotelInfo._id || hotelInfo,
+            name: hotelInfo.name || '酒店',
+            address: hotelInfo.address || '地址未知',
+            starLevel: hotelInfo.starLevel || 0,
+            minPrice: hotelInfo.minPrice || 0,
+            images: hotelInfo.images || [],
+            viewedAt: item.createdAt || item.viewedAt || new Date().toISOString()
+          }
+        })
+        
+        console.log('格式化后的浏览记录:', formattedHistory)
+        setViewHistory(formattedHistory)
+        
+        // 同时保存到本地存储作为备份
+        Taro.setStorageSync('hotel_view_history', formattedHistory)
+      } else {
+        console.log('浏览记录数据格式不正确:', historyData)
+        setViewHistory([])
+      }
       
     } catch (error: any) {
       console.error('加载浏览记录失败:', error)
       
-      if (error.message.includes('登录已过期')) {
-        handleTokenExpired()
-        return
+      // 如果后端获取失败，尝试从本地存储读取备份
+      console.log('尝试从本地存储读取备份浏览记录')
+      const backupHistory = Taro.getStorageSync('hotel_view_history') || []
+      setViewHistory(backupHistory)
+      
+      // 不显示错误提示，因为可能是用户还没有浏览记录
+      if (error.message && !error.message.includes('请先登录')) {
+        console.log('加载浏览记录失败，使用本地备份')
       }
-      
-      // 即使出错也要显示本地数据
-      const savedHistory = Taro.getStorageSync('hotel_view_history') || []
-      setViewHistory(savedHistory)
-      
-      showToast({
-        title: '加载浏览记录失败，显示本地数据',
-        icon: 'none',
-        duration: 2000
-      })
     } finally {
       setLoading(false)
     }
@@ -397,6 +417,17 @@ export default function LikesHistory() {
 
   useLoad(() => {
     loadData()
+  })
+
+  // 每次页面显示时重新加载数据
+  useDidShow(() => {
+    if (isLoggedIn) {
+      if (activeTab === 'history') {
+        loadViewHistory()
+      } else {
+        loadCollections()
+      }
+    }
   })
 
   // 切换标签时重新加载
