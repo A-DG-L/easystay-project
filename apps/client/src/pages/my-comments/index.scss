@@ -1,18 +1,16 @@
-/* pages/my-comments/index.scss */
-
 .my-comments-container {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-color: #f8f8f8;
   display: flex;
   flex-direction: column;
 }
 
 .header {
-  background-color: #fff;
-  padding: 30rpx;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 30rpx;
+  background-color: #fff;
   border-bottom: 2rpx solid #f0f0f0;
 }
 
@@ -31,20 +29,35 @@
     transform: translateY(-50%);
     width: 4rpx;
     height: 28rpx;
-    background: linear-gradient(to bottom, #ff6b00, #ff8c00);
+    background: #F9BE3E;
     border-radius: 2rpx;
   }
 }
 
 .count {
   font-size: 28rpx;
-  color: #ff6b00;
+  color: #F9BE3E;
   font-weight: 500;
+  background-color: #FFF5E0;
+  padding: 8rpx 20rpx;
+  border-radius: 30rpx;
 }
 
 .comments-list {
   flex: 1;
   padding: 20rpx;
+}
+
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  
+  .loading-text {
+    font-size: 28rpx;
+    color: #999;
+  }
 }
 
 .empty-state {
@@ -69,7 +82,7 @@
   
   .empty-desc {
     font-size: 28rpx;
-    color: #999;
+    color: #F9BE3E;
   }
 }
 
@@ -129,19 +142,22 @@
 }
 
 .star {
-  font-size: 24rpx;
+  font-size: 28rpx;
   color: #ddd;
   margin-right: 4rpx;
   
   &.active {
-    color: #ffb400;
+    color: #F9BE3E;
   }
 }
 
 .rating-text {
   font-size: 24rpx;
-  color: #ff6b00;
+  color: #F9BE3E;
   font-weight: 500;
+  background-color: #FFF5E0;
+  padding: 4rpx 12rpx;
+  border-radius: 20rpx;
 }
 
 .comment-time {
@@ -150,6 +166,9 @@
   right: 0;
   font-size: 24rpx;
   color: #999;
+  background-color: #f5f5f5;
+  padding: 4rpx 12rpx;
+  border-radius: 20rpx;
 }
 
 .comment-content {
@@ -157,84 +176,78 @@
   line-height: 1.6;
   color: #333;
   margin-bottom: 20rpx;
+  padding: 16rpx 0;
+  border-top: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid #f0f0f0;
 }
 
 .comment-images {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10rpx;
-  position: relative;
+  margin-bottom: 16rpx;
+  white-space: nowrap;
+  
+  .images {
+    display: inline-flex;
+    gap: 16rpx;
+  }
+  
+  .comment-image {
+    width: 180rpx;
+    height: 180rpx;
+    border-radius: 8rpx;
+    background-color: #f5f5f5;
+  }
+}
+.comment-content-wrapper {
+  padding: 16rpx 0;
 }
 
-.comment-image {
-  width: 200rpx;
-  height: 200rpx;
-  border-radius: 8rpx;
-  background-color: #f5f5f5;
-}
-
-.more-images {
-  width: 200rpx;
-  height: 200rpx;
-  background-color: rgba(0, 0, 0, 0.5);
-  border-radius: 8rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-size: 32rpx;
-  font-weight: 600;
-  position: absolute;
-  right: 0;
-  bottom: 0;
-}
-
-/* 加载状态 */
-.loading-container {
-  height: 100vh;
+.user-info {
   display: flex;
   align-items: center;
-  justify-content: center;
-  background-color: #fff;
+  margin-bottom: 12rpx;
+  
+  .user-avatar {
+    width: 48rpx;
+    height: 48rpx;
+    border-radius: 24rpx;
+    margin-right: 12rpx;
+    border: 2rpx solid #F9BE3E;
+  }
+  
+  .user-name {
+    font-size: 26rpx;
+    color: #666;
+    font-weight: 500;
+  }
 }
 
-.loading-text {
-  font-size: 28rpx;
-  color: #999;
-}
-
-/* 暗色模式适配 */
-@media (prefers-color-scheme: dark) {
-  .my-comments-container {
-    background-color: #1a1a1a;
-  }
+.comment-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid #f0f0f0;
   
-  .header {
-    background-color: #2a2a2a;
-    border-bottom-color: #333;
-  }
-  
-  .title {
-    color: #fff;
-  }
-  
-  .comment-card {
-    background-color: #2a2a2a;
-  }
-  
-  .hotel-name {
-    color: #fff;
-  }
-  
-  .room-name {
-    color: #999;
-  }
-  
-  .comment-content {
-    color: #e0e0e0;
-  }
-  
-  .empty-title {
-    color: #fff;
+  .delete-btn {
+    width: 120rpx;
+    height: 56rpx;
+    line-height: 56rpx;
+    background-color: #ffebee;
+    color: #f44336;
+    font-size: 24rpx;
+    border-radius: 28rpx;
+    border: 1rpx solid #ffcdd2;
+    
+    &::after {
+      border: none;
+    }
+    
+    &:active {
+      background-color: #ffcdd2;
+    }
+    
+    &[disabled] {
+      opacity: 0.5;
+    }
   }
 }

@@ -618,11 +618,10 @@ export default function LikesHistory() {
                       <Text className='price-unit'>起</Text>
                     </View>
                     
-                    {(item.collectedAt || item.viewedAt) && (
+                    {/* 只显示浏览时间，不显示收藏时间 */}
+                    {activeTab === 'history' && item.viewedAt && (
                       <Text className='time-info'>
-                        {activeTab === 'collections' 
-                          ? `收藏于 ${formatTime(item.collectedAt!)}`
-                          : `浏览于 ${formatTime(item.viewedAt!)}`}
+                        浏览于 {formatTime(item.viewedAt)}
                       </Text>
                     )}
                   </View>

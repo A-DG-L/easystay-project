@@ -1,4 +1,3 @@
-// pages/hotel-detail/index.tsx
 import { View, Text, Image, Swiper, SwiperItem, ScrollView, Button, Textarea } from '@tarojs/components'
 import { useLoad, useRouter, navigateTo, showModal, showToast, navigateBack, showActionSheet } from '@tarojs/taro'
 import { useState } from 'react'
@@ -88,11 +87,10 @@ const request = async (options: any) => {
 }
 
 // 获取完整图片URL
-const getFullImageUrl = (url?: string): string => {
+const getFullImageUrl = (url?: string) => {
   if (!url) return DEFAULT_IMAGE
   if (url.startsWith('http')) return url
-  if (url.startsWith('/')) return `${BASE_URL}${url}`
-  return `${BASE_URL}/${url}`
+  return `${BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`
 }
 
 export default function HotelDetail() {
@@ -207,15 +205,23 @@ export default function HotelDetail() {
           
           // 获取用户名 - 处理嵌套结构
           let username = '用户'
-          if (c.username) username = c.username
-          else if (c.user?.username) username = c.user.username
-          else if (c.user?.nickname) username = c.user.nickname
-          else if (c.nickname) username = c.nickname
+          if (c.userId && typeof c.userId === 'object') {
+            username = c.userId.nickname || c.userId.username || '用户'
+          } else if (c.user && typeof c.user === 'object') {
+            username = c.user.nickname || c.user.username || '用户'
+          } else if (c.username) {
+            username = c.username
+          }
           
           // 获取头像
           let avatar = DEFAULT_AVATAR
-          if (c.avatar) avatar = getFullImageUrl(c.avatar)
-          else if (c.user?.avatar) avatar = getFullImageUrl(c.user.avatar)
+          if (c.userId && typeof c.userId === 'object' && c.userId.avatar) {
+            avatar = getFullImageUrl(c.userId.avatar)
+          } else if (c.user && typeof c.user === 'object' && c.user.avatar) {
+            avatar = getFullImageUrl(c.user.avatar)
+          } else if (c.avatar) {
+            avatar = getFullImageUrl(c.avatar)
+          }
           
           // 处理评论图片
           let commentImages: string[] = []
@@ -364,30 +370,55 @@ export default function HotelDetail() {
       showToast({ title: '请输入内容', icon: 'none' })
       return
     }
-
     try {
       showToast({ title: '提交中...', icon: 'loading' })
-      
-      const res = await request({
-        url: '/comments',
-        method: 'POST',
-        data: commentForm,
-        needAuth: true
-      })
-
+      const res = await request({ url:'/comments', method:'POST', data:commentForm, needAuth:true })
       if (res.code === 200) {
-        // 更新订单状态
+        // 获取当前订单信息，包括酒店名和房型名
         const orders = Taro.getStorageSync('orders') || []
-        Taro.setStorageSync('orders', orders.map((o: any) => 
-          o.id === commentForm.orderId ? { ...o, reviewed: true } : o
-        ))
+        const currentOrder = orders.find((o: any) => o.id === commentForm.orderId || o._id === commentForm.orderId)
+        
+        // 保存到本地评论缓存 - 包含完整的酒店信息
+        const oldComments = Taro.getStorageSync('comments') || []
+        const userInfo = Taro.getStorageSync('userInfo') || {}
+        
+        // 获取酒店图片
+        let hotelImage = ''
+        if (hotel?.images && hotel.images.length > 0) {
+          hotelImage = hotel.images[0]
+        } else if (currentOrder?.hotelImage) {
+          hotelImage = currentOrder.hotelImage
+        }
+        
+        const newComment = {
+          _id: res.data._id || res.data.id || Date.now().toString(),
+          hotelId: hotelId,
+          hotelName: currentOrder?.hotelName || hotel?.name || '酒店',
+          hotelImage: hotelImage,
+          roomName: currentOrder?.roomName || '房型',
+          orderId: commentForm.orderId,
+          username: userInfo.nickname || userInfo.username || '用户',
+          userId: userInfo.id || userInfo._id,
+          content: commentForm.content,
+          rating: commentForm.rating,
+          images: commentForm.images,
+          createdAt: new Date().toISOString()
+        }
+        
+        Taro.setStorageSync('comments', [...oldComments, newComment])
+
+        // 更新订单缓存 reviewed
+        const updatedOrders = orders.map((o: any) => 
+          (o.id === commentForm.orderId || o._id === commentForm.orderId) ? { ...o, reviewed: true } : o
+        )
+        Taro.setStorageSync('orders', updatedOrders)
 
         await loadComments()
         setShowCommentModal(false)
         setCommentForm({ content: '', rating: 5, images: [], orderId: '' })
         showToast({ title: '评价成功', icon: 'success' })
       }
-    } catch (error) {
+    } catch {
       showToast({ title: '提交失败', icon: 'none' })
     }
   }
