@@ -1,6 +1,6 @@
 // pages/booking/index.tsx
 import { View, Text, Input, Button, Picker } from '@tarojs/components'
-import { useRouter, showModal, showToast, navigateTo, switchTab, navigateBack } from '@tarojs/taro' 
+import { useRouter, showModal, showToast, navigateTo, switchTab, navigateBack,useDidShow } from '@tarojs/taro' 
 import { useState, useEffect } from 'react'
 import Taro from '@tarojs/taro'
 import './index.scss'

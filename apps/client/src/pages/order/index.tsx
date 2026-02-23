@@ -63,7 +63,7 @@ export default function Order() {
           const res = await Taro.request({
             url: 'http://localhost:3000/api/orders',
             method: 'GET',
-            header: { 'Authorization': `Bearer ${token}` }
+            header: { 'Authorization': token }
           })
           if (res.data.code === 200) {
             orderList = Array.isArray(res.data.data) ? res.data.data : res.data.data.list || []
@@ -160,13 +160,52 @@ export default function Order() {
       confirmColor: '#F9BE3E',
       success: async (res) => {
         if (res.confirm) {
-          showToast({ title: '支付成功', icon: 'success' })
-          // 这里可以调用支付接口
-          const updatedOrders = orders.map(o => 
-            o.id === order.id ? { ...o, status: 'paid' as OrderStatus } : o
-          )
-          setOrders(updatedOrders)
-          Taro.setStorageSync('orders', updatedOrders)
+          const token = Taro.getStorageSync('token')
+
+          if (!token) {
+            showModal({
+              title: '提示',
+              content: '请先登录后再支付',
+              success: () => {
+                navigateTo({ url: '/pages/login/index' })
+              }
+            })
+            return
+          }
+
+          try {
+            showToast({ title: '支付中...', icon: 'loading', duration: 10000 })
+
+            const payRes = await Taro.request({
+              url: `http://localhost:3000/api/orders/${order.id}/pay`,
+              method: 'POST',
+              header: {
+                Authorization: token
+              }
+            })
+
+            Taro.hideToast()
+
+            if (payRes.data && payRes.data.code === 200) {
+              const updatedOrders = orders.map(o =>
+                o.id === order.id
+                  ? { ...o, status: 'paid' as OrderStatus }
+                  : o
+              )
+              setOrders(updatedOrders)
+              Taro.setStorageSync('orders', updatedOrders)
+              showToast({ title: '支付成功', icon: 'success' })
+            } else {
+              showToast({
+                title: payRes.data?.msg || '支付失败，请稍后重试',
+                icon: 'none'
+              })
+            }
+          } catch (error) {
+            console.error('支付失败:', error)
+            Taro.hideToast()
+            showToast({ title: '网络错误，支付失败', icon: 'none' })
+          }
         }
       }
     })

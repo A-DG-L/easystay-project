@@ -13,13 +13,15 @@ import {
   Input,
   InputNumber,
   Image,
-  Divider
+  Divider,
+  Upload
 } from 'antd';
 import {
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
-  ArrowLeftOutlined
+  ArrowLeftOutlined,
+  UploadOutlined
 } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import request from '../../utils/request';
@@ -35,6 +37,16 @@ const RoomList = () => {
   const [hotelInfo, setHotelInfo] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingRoom, setEditingRoom] = useState(null);
+  const [uploading, setUploading] = useState(false);
+
+  // 将后端返回的相对路径（/uploads/xxx.jpg）转换为可访问的完整 URL
+  const getImageUrl = (url) => {
+    if (!url) return '';
+    if (url.startsWith('http')) return url;
+    const normalized = url.startsWith('/') ? url : `/${url}`;
+    // 与后端 baseURL 保持一致：http://localhost:3000
+    return `http://localhost:3000${normalized}`;
+  };
 
   // 获取房型列表
   const fetchRooms = async () => {
@@ -69,6 +81,53 @@ const RoomList = () => {
       fetchRooms();
     }
   }, [hotelId]);
+
+  // 房型图片上传
+  const handleUpload = async (file) => {
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await request.post('/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      if (res.code === 200) {
+        const url = res.data.url;
+        // 写回表单的 imageUrl 字段，统一使用本地 uploads 下的图片地址
+        form.setFieldsValue({ imageUrl: url });
+        message.success('图片上传成功');
+        return url;
+      } else {
+        message.error(res.msg || '上传失败');
+        return false;
+      }
+    } catch (error) {
+      message.error('上传失败，请检查网络');
+      return false;
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const uploadProps = {
+    beforeUpload: async (file) => {
+      if (!file.type.startsWith('image/')) {
+        message.error('只能上传图片文件！');
+        return Upload.LIST_IGNORE;
+      }
+      if (file.size / 1024 / 1024 > 5) {
+        message.error('图片大小不能超过5MB！');
+        return Upload.LIST_IGNORE;
+      }
+      const result = await handleUpload(file);
+      // 返回 false 阻止 antd 自动上传，改为我们手动上传
+      return result === false ? Upload.LIST_IGNORE : false;
+    },
+    showUploadList: false,
+    disabled: uploading
+  };
 
   // 添加/编辑房型
   const handleSubmit = async (values) => {
@@ -119,7 +178,7 @@ const RoomList = () => {
       key: 'image',
       width: 80,
       render: (_, record) => record.imageUrl ? (
-        <Image src={record.imageUrl} width={60} height={60} style={{ objectFit: 'cover' }} />
+        <Image src={getImageUrl(record.imageUrl)} width={60} height={60} style={{ objectFit: 'cover' }} />
       ) : (
         <div style={{ width: 60, height: 60, background: '#f0f0f0', textAlign: 'center', lineHeight: '60px' }}>暂无</div>
       )
@@ -241,7 +300,46 @@ const RoomList = () => {
           </Form.Item>
           
           <Form.Item name="imageUrl" label="房型图片">
-            <Input placeholder="输入图片URL" />
+            <Input placeholder="输入图片URL，或使用下方按钮上传" />
+            <div style={{ marginTop: 8 }}>
+              <Upload {...uploadProps}>
+                <Button icon={<UploadOutlined />} loading={uploading}>
+                  {uploading ? '上传中...' : '上传图片到服务器'}
+                </Button>
+              </Upload>
+            </div>
+            {form.getFieldValue('imageUrl') && (
+              <div style={{ marginTop: 8 }}>
+                <Image
+                  src={getImageUrl(form.getFieldValue('imageUrl'))}
+                  width={80}
+                  height={80}
+                  style={{ objectFit: 'cover', borderRadius: 4 }}
+                />
+                <Button
+                  type="link"
+                  danger
+                  style={{ padding: 0, marginTop: 4 }}
+                  onClick={async () => {
+                    const currentUrl = form.getFieldValue('imageUrl');
+                    if (!currentUrl) return;
+                    try {
+                      const res = await request.delete('/upload', { data: { url: currentUrl } });
+                      if (res.code === 200) {
+                        message.success('图片已删除');
+                        form.setFieldsValue({ imageUrl: '' });
+                      } else {
+                        message.error(res.msg || '删除失败');
+                      }
+                    } catch (error) {
+                      message.error('删除失败');
+                    }
+                  }}
+                >
+                  删除图片
+                </Button>
+              </div>
+            )}
           </Form.Item>
           
           <Divider />
