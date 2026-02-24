@@ -14,6 +14,10 @@ const orderSchema = new mongoose.Schema({
   checkInDate: { type: Date, required: true },  // 入住日期
   checkOutDate: { type: Date, required: true }, // 离店日期
   totalPrice: { type: Number, required: true }, // 总价
+  // 预订间数（房间数量）
+  roomCount: { type: Number, default: 1 },
+  // 入住晚数，便于统计和展示
+  nights: { type: Number, default: 1 },
   
   // 入住人信息 (根据文档 Source 247: "填入住人信息")
   guestName: { type: String, required: true },

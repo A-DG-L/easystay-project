@@ -14,7 +14,8 @@ import {
   InputNumber,
   Image,
   Divider,
-  Upload
+  Upload,
+  DatePicker
 } from 'antd';
 import {
   PlusOutlined,
@@ -27,6 +28,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import request from '../../utils/request';
 
 const { TextArea } = Input;
+const { RangePicker } = DatePicker;
 
 const RoomList = () => {
   const navigate = useNavigate();
@@ -38,6 +40,10 @@ const RoomList = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingRoom, setEditingRoom] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [inventoryVisible, setInventoryVisible] = useState(false);
+  const [inventoryRoom, setInventoryRoom] = useState(null);
+  const [inventoryLoading, setInventoryLoading] = useState(false);
+  const [inventoryData, setInventoryData] = useState([]);
 
   // 将后端返回的相对路径（/uploads/xxx.jpg）转换为可访问的完整 URL
   const getImageUrl = (url) => {
@@ -172,6 +178,30 @@ const RoomList = () => {
     }
   };
 
+  // 获取某个房型在一段时间内的每日库存明细
+  const fetchInventory = async (room, range) => {
+    if (!room || !room._id) return;
+    setInventoryLoading(true);
+    try {
+      const params = {};
+      if (range && range.length === 2) {
+        params.startDate = range[0].format('YYYY-MM-DD');
+        params.endDate = range[1].format('YYYY-MM-DD');
+      }
+
+      const res = await request.get(`/rooms/${room._id}/inventory`, { params });
+      if (res.code === 200 && res.data && Array.isArray(res.data.list)) {
+        setInventoryData(res.data.list);
+      } else {
+        message.error('获取库存明细失败');
+      }
+    } catch (error) {
+      message.error('获取库存明细失败');
+    } finally {
+      setInventoryLoading(false);
+    }
+  };
+
   const columns = [
     {
       title: '房型图片',
@@ -226,6 +256,18 @@ const RoomList = () => {
           >
             <Button type="link" danger icon={<DeleteOutlined />}>删除</Button>
           </Popconfirm>
+          <Button
+            type="link"
+            onClick={() => {
+              setInventoryRoom(record);
+              setInventoryVisible(true);
+              setInventoryData([]);
+              // 默认让后端按今天起 7 天返回
+              fetchInventory(record);
+            }}
+          >
+            库存明细
+          </Button>
         </Space>
       )
     }
@@ -354,6 +396,37 @@ const RoomList = () => {
             </div>
           </Form.Item>
         </Form>
+      </Modal>
+
+      {/* 库存明细弹窗 */}
+      <Modal
+        title={inventoryRoom ? `${inventoryRoom.name} - 库存明细` : '库存明细'}
+        open={inventoryVisible}
+        onCancel={() => setInventoryVisible(false)}
+        footer={null}
+        width={600}
+      >
+        <div style={{ marginBottom: 16 }}>
+          <RangePicker
+            onChange={(dates) => {
+              if (!dates || dates.length !== 2 || !inventoryRoom) return;
+              fetchInventory(inventoryRoom, dates);
+            }}
+          />
+        </div>
+        <Table
+          dataSource={inventoryData}
+          columns={[
+            { title: '入住日期（按晚统计）', dataIndex: 'date', key: 'date' },
+            { title: '总房量', dataIndex: 'total', key: 'total' },
+            { title: '已预订', dataIndex: 'booked', key: 'booked' },
+            { title: '可售', dataIndex: 'available', key: 'available' },
+          ]}
+          rowKey={(record) => record.date}
+          loading={inventoryLoading}
+          pagination={false}
+          size="small"
+        />
       </Modal>
     </div>
   );

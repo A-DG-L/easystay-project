@@ -8,6 +8,10 @@ import './index.scss'
 export default function Booking() {
   const router = useRouter()
   const params = router.params || {}
+
+  const initialCheckInDate = params.checkInDate ? decodeURIComponent(String(params.checkInDate)) : ''
+  const initialCheckOutDate = params.checkOutDate ? decodeURIComponent(String(params.checkOutDate)) : ''
+  const initialRoomCount = params.roomCount ? Math.max(1, Number(params.roomCount) || 1) : 1
   
   // 从路由参数获取房间信息
   const [hotelInfo] = useState({ 
@@ -24,16 +28,16 @@ export default function Booking() {
   
   // 预订信息
   const [bookingInfo, setBookingInfo] = useState({
-    checkInDate: '',
-    checkOutDate: '',
-    roomCount: 1,
+    checkInDate: initialCheckInDate,
+    checkOutDate: initialCheckOutDate,
+    roomCount: initialRoomCount,
     totalPrice: 0,
     guestName: '',
     guestPhone: ''
   })
   
   // 日期选择器
-  const [dateRange, setDateRange] = useState(['', ''])
+  const [dateRange, setDateRange] = useState<[string, string]>([initialCheckInDate || '', initialCheckOutDate || ''])
   
   // 房间数量选项
   const roomCounts = [1, 2, 3, 4, 5]
@@ -156,8 +160,8 @@ export default function Booking() {
         })
         return
       }
-      // const isAvailable = await checkRoomAvailability()
-      // if (!isAvailable) return
+      const isAvailable = await checkRoomAvailability()
+      if (!isAvailable) return
 
       showToast({ title: '创建订单中...', icon: 'loading', duration: 10000 })
       

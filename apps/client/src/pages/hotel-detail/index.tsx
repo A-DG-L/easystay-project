@@ -1,6 +1,6 @@
-import { View, Text, Image, Swiper, SwiperItem, ScrollView, Button, Textarea } from '@tarojs/components'
+import { View, Text, Image, Swiper, SwiperItem, ScrollView, Button, Textarea, Picker } from '@tarojs/components'
 import { useLoad, useRouter, navigateTo, showModal, showToast, navigateBack, showActionSheet } from '@tarojs/taro'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Taro from '@tarojs/taro'
 import './index.scss'
 
@@ -24,6 +24,7 @@ interface RoomType {
   price: number
   images: string[]
   bedType: string
+  stock?: number
 }
 
 interface Comment {
@@ -129,6 +130,12 @@ export default function HotelDetail() {
   const [rooms, setRooms] = useState<RoomType[]>([])
   const [loading, setLoading] = useState(true)
   const [currentImage, setCurrentImage] = useState(0)
+
+  // 预订条件：入住/离店日期与间数
+  const [checkInDate, setCheckInDate] = useState('')
+  const [checkOutDate, setCheckOutDate] = useState('')
+  const [roomCount, setRoomCount] = useState(1)
+  const [roomAvailability, setRoomAvailability] = useState<Record<string, boolean>>({})
   
   // 评论相关
   const [comments, setComments] = useState<Comment[]>([])
@@ -226,7 +233,8 @@ export default function HotelDetail() {
             description: r.description || '',
             price: r.price || 0,
             bedType: r.bedType || '大床',
-            images: [roomImage]
+            images: [roomImage],
+            stock: typeof r.stock === 'number' ? r.stock : undefined
           }
         }))
       }
@@ -500,8 +508,58 @@ export default function HotelDetail() {
     if (hotelId) {
       loadHotelDetail() // 加载酒店详情
       recordHistory() // 静默记录足迹 (不等待，不阻塞)
+      // 默认设置为今天入住、明天离店
+      const today = new Date()
+      const tomorrow = new Date()
+      tomorrow.setDate(today.getDate() + 1)
+      const format = (d: Date) => d.toISOString().split('T')[0]
+      setCheckInDate(format(today))
+      setCheckOutDate(format(tomorrow))
     }
   })
+
+  // 根据当前日期与间数批量检查每个房型的可用性
+  useEffect(() => {
+    const fetchAvailability = async () => {
+      if (!checkInDate || !checkOutDate || rooms.length === 0) {
+        setRoomAvailability({})
+        return
+      }
+
+      try {
+        const results = await Promise.all(rooms.map(async (room) => {
+          try {
+            const res = await request({
+              url: `/rooms/${room._id}/availability`,
+              method: 'GET',
+              data: {
+                checkInDate,
+                checkOutDate,
+                roomCount
+              },
+              needAuth: true
+            })
+            if (res.code === 200 && res.data) {
+              return { roomId: room._id, available: !!res.data.available }
+            }
+          } catch (err) {
+            console.error('检查房型可用性失败:', err)
+          }
+          return { roomId: room._id, available: true }
+        }))
+
+        const map: Record<string, boolean> = {}
+        results.forEach(item => {
+          map[item.roomId] = item.available
+        })
+        setRoomAvailability(map)
+      } catch (error) {
+        console.error('批量检查房型可用性失败:', error)
+      }
+    }
+
+    fetchAvailability()
+  }, [checkInDate, checkOutDate, roomCount, rooms])
 
   if (loading) {
     return (
@@ -522,6 +580,21 @@ export default function HotelDetail() {
 
   // 根据是否显示全部评论来决定显示的评论列表
   const displayComments = showAllComments ? comments : comments.slice(0, 3)
+
+  // 按当前选择的间数过滤可用房型（库存不足的先隐藏）
+  const filteredRooms = rooms.filter(room => {
+    // 如果尚未加载可用性信息，则暂时全部展示
+    if (roomAvailability[room._id] === undefined) return true
+    return roomAvailability[room._id]
+  })
+
+  const calculateNights = () => {
+    if (!checkInDate || !checkOutDate) return 1
+    const start = new Date(checkInDate)
+    const end = new Date(checkOutDate)
+    const diff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+    return diff > 0 ? diff : 1
+  }
 
   return (
     <View className='hotel-detail'>
@@ -594,13 +667,55 @@ export default function HotelDetail() {
           </View>
         )}
 
+        {/* 预订条件选择：入住/离店日期与间数 */}
+        <View className='section'>
+          <Text className='section-title'>预订信息</Text>
+          <View className='booking-condition'>
+            <View className='date-picker-group'>
+              <Picker mode='date' value={checkInDate} onChange={(e) => setCheckInDate(e.detail.value)}>
+                <View className='date-item'>
+                  <Text className='label'>入住日期</Text>
+                  <Text className='value'>{checkInDate || '请选择'}</Text>
+                </View>
+              </Picker>
+              <Picker mode='date' value={checkOutDate} onChange={(e) => setCheckOutDate(e.detail.value)}>
+                <View className='date-item'>
+                  <Text className='label'>离店日期</Text>
+                  <Text className='value'>{checkOutDate || '请选择'}</Text>
+                </View>
+              </Picker>
+            </View>
+            <View className='room-count-selector'>
+              <Text className='label'>间数</Text>
+              <View className='counter'>
+                <Button
+                  size='mini'
+                  onClick={() => setRoomCount(prev => (prev > 1 ? prev - 1 : 1))}
+                >
+                  -
+                </Button>
+                <Text className='value'>{roomCount} 间</Text>
+                <Button
+                  size='mini'
+                  onClick={() => setRoomCount(prev => prev + 1)}
+                >
+                  +
+                </Button>
+              </View>
+            </View>
+            <View className='nights-info'>
+              <Text>共 {calculateNights()} 晚</Text>
+            </View>
+          </View>
+        </View>
+
         {/* 房型 - 放在评论上面 */}
         <View className='section'>
           <Text className='section-title'>可选房型</Text>
-          {rooms.length === 0 ? (
-            <Text className='empty-text'>暂无房型</Text>
+          {filteredRooms.length === 0 ? (
+            <Text className='empty-text'>当前条件下暂无可预订房型</Text>
           ) : (
-            rooms.map(room => (
+            filteredRooms.map(room => (
               <View key={room._id} className='room-card'>
                 <SafeImage 
                   src={room.images[0]}
@@ -615,9 +730,30 @@ export default function HotelDetail() {
                     <Text className='room-price'>¥{room.price}<Text className='unit'>/晚</Text></Text>
                     <Button 
                       className='book-btn'
-                      onClick={() => navigateTo({ 
-                        url: `/pages/booking/index?hotelId=${hotelId}&roomId=${room._id}&roomName=${encodeURIComponent(room.name)}&roomPrice=${room.price}&hotelName=${encodeURIComponent(hotel.name)}&hotelImage=${encodeURIComponent(hotel.images[0])}`
-                      })}
+                      onClick={() => {
+                        if (!checkInDate || !checkOutDate) {
+                          showModal({
+                            title: '提示',
+                            content: '请先选择入住和离店日期',
+                            showCancel: false
+                          })
+                          return
+                        }
+                        const image = room.images[0] || (hotel.images && hotel.images[0]) || ''
+                        const hotelImage = image ? image : ''
+                        const query = [
+                          `hotelId=${hotelId}`,
+                          `roomId=${room._id}`,
+                          `roomName=${encodeURIComponent(room.name)}`,
+                          `roomPrice=${room.price}`,
+                          `hotelName=${encodeURIComponent(hotel.name)}`,
+                          `hotelImage=${encodeURIComponent(hotelImage)}`,
+                          `checkInDate=${encodeURIComponent(checkInDate)}`,
+                          `checkOutDate=${encodeURIComponent(checkOutDate)}`,
+                          `roomCount=${roomCount}`,
+                        ].join('&')
+                        navigateTo({ url: `/pages/booking/index?${query}` })
+                      }}
                     >
                       预订
                     </Button>

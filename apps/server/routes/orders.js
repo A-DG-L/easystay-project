@@ -8,14 +8,25 @@ const router = new Router({ prefix: '/api/orders' });
 const successResponse = (data, msg = 'success') => ({ code: 200, data, msg });
 const errorResponse = (code = 400, msg = 'error') => ({ code, data: null, msg });
 
+// 工具函数：按天遍历日期区间 [start, end)
+const eachDay = (start, end, cb) => {
+  const cur = new Date(start.getTime());
+  while (cur < end) {
+    cb(new Date(cur.getTime()));
+    cur.setDate(cur.getDate() + 1);
+  }
+};
+
+const formatDateKey = (date) => date.toISOString().split('T')[0];
+
 /**
  * @route POST /api/orders
- * @desc [用户] 创建订单 (下单 + 扣库存)
- * @cite source: 246 "下单接口 POST /create。扣减房型库存"
+ * @desc [用户] 创建订单 (下单，库存按日期由订单记录推导，不再直接扣减 Room.stock)
+ * @cite source: 246 "下单接口 POST /create。扣减房型库存"（已调整为按日期校验）
  */
 router.post('/', authMiddleware, async (ctx) => {
   try {
-    const { roomId, hotelId, checkInDate, checkOutDate, totalPrice, guestName, guestPhone } = ctx.request.body;
+    const { roomId, hotelId, checkInDate, checkOutDate, totalPrice, guestName, guestPhone, roomCount, nights } = ctx.request.body;
     const userId = ctx.state.user.id;
 
     // 1. 检查参数
@@ -23,28 +34,58 @@ router.post('/', authMiddleware, async (ctx) => {
       return ctx.body = errorResponse(400, '参数不完整');
     }
 
-    // 2. 检查库存 (并发控制简单版)
-    // 实际上应该用事务(Transaction)，但 Mongoose 在单节点 MongoDB 下可以用这种方式简化
+    // 2. 计算本次预订的间数（至少为 1 间）
+    const count = Math.max(1, parseInt(roomCount, 10) || 1);
+
+    // 3. 按日期校验库存（不直接修改 Room.stock）
+    const start = new Date(checkInDate);
+    const end = new Date(checkOutDate);
+    if (isNaN(start.getTime()) || isNaN(end.getTime()) || end <= start) {
+      return ctx.body = errorResponse(400, '入住/离店日期不合法');
+    }
+
     const room = await Room.findById(roomId);
-    
     if (!room) {
       return ctx.body = errorResponse(404, '房型不存在');
     }
 
-    if (room.stock <= 0) {
-      return ctx.body = errorResponse(400, '该房型已售罄');
+    const totalStock = room.stock || 0;
+    if (totalStock <= 0) {
+      return ctx.body = errorResponse(400, '该房型暂无可售房量');
     }
 
-    // 3. 扣减库存
-    // $inc 是原子操作，能防止多个人同时把库存扣成负数
-    const updatedRoom = await Room.findOneAndUpdate(
-      { _id: roomId, stock: { $gt: 0 } }, // 确保库存大于0才扣
-      { $inc: { stock: -1 } },            // 库存 -1
-      { new: true }
-    );
+    const existingOrders = await Order.find({
+      roomId,
+      status: { $ne: 'cancelled' },
+      checkInDate: { $lt: end },
+      checkOutDate: { $gt: start }
+    });
 
-    if (!updatedRoom) {
-      return ctx.body = errorResponse(400, '手慢了，房间刚被抢完');
+    const occupancy = {};
+    existingOrders.forEach((order) => {
+      const oStart = new Date(order.checkInDate);
+      const oEnd = new Date(order.checkOutDate);
+      const overlapStart = oStart > start ? oStart : start;
+      const overlapEnd = oEnd < end ? oEnd : end;
+      const orderCount = order.roomCount ? parseInt(order.roomCount, 10) || 1 : 1;
+
+      eachDay(overlapStart, overlapEnd, (day) => {
+        const key = formatDateKey(day);
+        occupancy[key] = (occupancy[key] || 0) + orderCount;
+      });
+    });
+
+    let canBook = true;
+    eachDay(start, end, (day) => {
+      const key = formatDateKey(day);
+      const used = occupancy[key] || 0;
+      if (used + count > totalStock) {
+        canBook = false;
+      }
+    });
+
+    if (!canBook) {
+      return ctx.body = errorResponse(400, '该房型在所选日期内库存不足');
     }
 
     // 4. 创建订单
@@ -55,6 +96,8 @@ router.post('/', authMiddleware, async (ctx) => {
       checkInDate,
       checkOutDate,
       totalPrice,
+      roomCount: count,
+      nights: Math.max(1, parseInt(nights, 10) || 1),
       guestName,
       guestPhone,
       status: 'pending' // 默认为待支付
@@ -140,10 +183,8 @@ router.post('/:id/cancel', authMiddleware, async (ctx) => {
     order.status = 'cancelled';
     await order.save();
 
-    // 2. 归还库存 (+1)
-    await Room.findByIdAndUpdate(order.roomId, { $inc: { stock: 1 } });
-
-    ctx.body = successResponse(null, '订单已取消，库存已释放');
+    // 不再直接回滚 Room.stock，库存由订单记录和房型总房量推导
+    ctx.body = successResponse(null, '订单已取消');
   } catch (err) {
     ctx.body = errorResponse(500, '取消失败');
   }

@@ -27,13 +27,6 @@ interface ProfileData {
   stats: UserStats
 }
 
-// 订单类型定义
-interface Order {
-  id: string
-  status: 'pending' | 'paid' | 'completed' | 'cancelled'
-  reviewed?: boolean
-}
-
 export default function Profile() {
   const [loading, setLoading] = useState(true)
   const [profileData, setProfileData] = useState<ProfileData | null>(null)
@@ -104,45 +97,12 @@ export default function Profile() {
     return true
   }
 
-  // 从本地存储计算订单统计
-  const calculateOrderStats = () => {
-    try {
-      const orders: Order[] = Taro.getStorageSync('orders') || []
-      
-      const validOrders = orders.filter(order => order.status !== 'cancelled')
-      
-      const stats = {
-        total: validOrders.length,
-        pending: orders.filter(o => o.status === 'pending').length,
-        paid: orders.filter(o => o.status === 'paid').length,
-        completed: orders.filter(o => o.status === 'completed').length,
-        cancelled: orders.filter(o => o.status === 'cancelled').length
-      }
-      
-      setOrderStats(stats)
-      console.log('订单统计:', stats)
-      
-      return stats
-    } catch (error) {
-      console.error('计算订单统计失败:', error)
-      return {
-        total: 0,
-        pending: 0,
-        paid: 0,
-        completed: 0,
-        cancelled: 0
-      }
-    }
-  }
-
   // 加载用户信息
   const loadUserProfile = async () => {
     try {
       setLoading(true)
       
       if (!checkLogin()) return
-
-      const localStats = calculateOrderStats()
 
       const response = await request({
         url: '/users/profile',
@@ -153,6 +113,7 @@ export default function Profile() {
       
       if (response.code === 200) {
         const userData = response.data.userInfo || response.data
+        const statsFromApi = response.data.stats || {}
         
         // 处理头像URL
         const processedAvatar = getFullAvatarUrl(userData.avatar)
@@ -164,11 +125,18 @@ export default function Profile() {
             avatar: processedAvatar
           },
           stats: {
-            orderCount: localStats.total,
-            pendingPaymentCount: localStats.pending,
-            likeCount: response.data.stats?.likeCount || 0
+            orderCount: statsFromApi.orderCount || 0,
+            pendingPaymentCount: statsFromApi.pendingPaymentCount || 0,
+            likeCount: statsFromApi.likeCount || 0
           }
         })
+
+        // 同步部分订单统计（顶部卡片 total/pending）
+        setOrderStats(prev => ({
+          ...prev,
+          total: statsFromApi.orderCount || 0,
+          pending: statsFromApi.pendingPaymentCount || 0
+        }))
       } else if (response.code === 401) {
         Taro.removeStorageSync('token')
         setIsLoggedIn(false)
@@ -183,10 +151,7 @@ export default function Profile() {
       }
     } catch (error: any) {
       console.error('加载用户信息失败:', error)
-      
-      const localStats = calculateOrderStats()
-      setOrderStats(localStats)
-      
+
       // 尝试从本地存储加载用户信息
       const localUserInfo = Taro.getStorageSync('userInfo') || {}
       if (localUserInfo.username) {
@@ -197,8 +162,8 @@ export default function Profile() {
             avatar: getFullAvatarUrl(localUserInfo.avatar)
           },
           stats: {
-            orderCount: localStats.total,
-            pendingPaymentCount: localStats.pending,
+            orderCount: 0,
+            pendingPaymentCount: 0,
             likeCount: 0
           }
         })
@@ -270,9 +235,40 @@ export default function Profile() {
     })
   }
 
-  // 刷新订单统计
-  const refreshOrderStats = () => {
-    calculateOrderStats()
+  // 从后端订单列表统计各状态数量
+  const loadOrderStats = async () => {
+    try {
+      const token = Taro.getStorageSync('token')
+      if (!token) {
+        setOrderStats({ total: 0, pending: 0, paid: 0, completed: 0, cancelled: 0 })
+        return
+      }
+
+      const res: any = await request({
+        url: '/orders',
+        method: 'GET'
+      })
+
+      if (res.code === 200) {
+        const list: any[] = Array.isArray(res.data) ? res.data : res.data?.list || []
+
+        const stats = {
+          total: list.length,
+          pending: list.filter(o => o.status === 'pending').length,
+          paid: list.filter(o => o.status === 'paid').length,
+          completed: list.filter(o => o.status === 'completed').length,
+          cancelled: list.filter(o => o.status === 'cancelled').length
+        }
+
+        setOrderStats(stats)
+        console.log('订单统计(来自后端):', stats)
+      } else {
+        setOrderStats({ total: 0, pending: 0, paid: 0, completed: 0, cancelled: 0 })
+      }
+    } catch (error) {
+      console.error('加载订单统计失败:', error)
+      setOrderStats({ total: 0, pending: 0, paid: 0, completed: 0, cancelled: 0 })
+    }
   }
 
   // 页面显示时刷新数据
@@ -280,12 +276,13 @@ export default function Profile() {
     console.log('个人中心页面显示，刷新数据')
     if (isLoggedIn) {
       loadUserProfile()
-      refreshOrderStats()
+      loadOrderStats()
     }
   })
 
   useLoad(() => {
     loadUserProfile()
+    loadOrderStats()
   })
 
   // 监听登录状态
@@ -347,11 +344,11 @@ export default function Profile() {
           
           <View className='profile-stats'>
             <View className='stat-item' onClick={handleViewOrders}>
-              <Text className='stat-number'>{orderStats.total}</Text>
+              <Text className='stat-number'>{profileData?.stats?.orderCount || 0}</Text>
               <Text className='stat-label'>全部订单</Text>
             </View>
             <View className='stat-item' onClick={handleViewPendingOrders}>
-              <Text className='stat-number'>{orderStats.pending}</Text>
+              <Text className='stat-number'>{profileData?.stats?.pendingPaymentCount || 0}</Text>
               <Text className='stat-label'>待支付</Text>
             </View>
             <View className='stat-item' onClick={handleViewMyCollections}>

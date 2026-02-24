@@ -1,5 +1,7 @@
 const Router = require('koa-router');
 const Hotel = require('../models/Hotel');
+const Room = require('../models/Room');
+const Order = require('../models/Order');
 const { authMiddleware, isMerchant, isAdmin } = require('../middleware/auth');
 
 const router = new Router({ prefix: '/api/hotels' });
@@ -52,8 +54,45 @@ router.post('/', authMiddleware, isMerchant, async (ctx) => {
 router.get('/my-hotels', authMiddleware, isMerchant, async (ctx) => {
   try {
     const merchantId = ctx.state.user.id;
-    const hotels = await Hotel.find({ merchantId }).sort({ createdAt: -1 });
-    ctx.body = successResponse(hotels);
+
+    // 1. 先查出当前商户的所有酒店
+    const hotels = await Hotel.find({ merchantId }).sort({ _id: -1 });
+
+    if (!hotels.length) {
+      return ctx.body = successResponse([]);
+    }
+
+    const hotelIds = hotels.map(hotel => hotel._id);
+
+    // 2. 统计每个酒店的房型数和订单数
+    const [roomStats, orderStats] = await Promise.all([
+      // 统计房型数量
+      Room.aggregate([
+        { $match: { hotelId: { $in: hotelIds } } },
+        { $group: { _id: '$hotelId', count: { $sum: 1 } } }
+      ]),
+      // 统计订单数量
+      Order.aggregate([
+        { $match: { hotelId: { $in: hotelIds } } },
+        { $group: { _id: '$hotelId', count: { $sum: 1 } } }
+      ])
+    ]);
+
+    const roomCountMap = new Map(roomStats.map(item => [String(item._id), item.count]));
+    const orderCountMap = new Map(orderStats.map(item => [String(item._id), item.count]));
+
+    // 3. 把统计结果合并到返回数据中，供管理端显示
+    const result = hotels.map(hotel => {
+      const obj = hotel.toObject();
+      const key = String(hotel._id);
+      return {
+        ...obj,
+        roomCount: roomCountMap.get(key) || 0,
+        orderCount: orderCountMap.get(key) || 0
+      };
+    });
+
+    ctx.body = successResponse(result);
   } catch (err) {
     ctx.body = errorResponse(500, '获取列表失败');
   }
