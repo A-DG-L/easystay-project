@@ -57,7 +57,17 @@ const HotelList = () => {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [roomModalVisible, setRoomModalVisible] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [roomUploading, setRoomUploading] = useState(false);
   const [imageList, setImageList] = useState([]);
+
+  // 将后端返回的相对路径（/uploads/xxx.jpg）转换为可访问的完整 URL
+  const getImageUrl = (url) => {
+    if (!url) return '';
+    if (url.startsWith('http')) return url;
+    const normalized = url.startsWith('/') ? url : `/${url}`;
+    // 与后端 baseURL 保持一致：http://localhost:3000
+    return `http://localhost:3000${normalized}`;
+  };
 
   // 设施选项
   const facilityOptions = [
@@ -279,6 +289,35 @@ const HotelList = () => {
     }
   };
 
+  // 房型图片上传（与房型详情页保持一致）
+  const handleRoomImageUpload = async (file) => {
+    setRoomUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await request.post('/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      if (res.code === 200) {
+        const url = res.data.url;
+        // 写回房型表单的 imageUrl 字段
+        roomForm.setFieldsValue({ imageUrl: url });
+        message.success('图片上传成功');
+        return url;
+      } else {
+        message.error(res.msg || '上传失败');
+        return false;
+      }
+    } catch (error) {
+      message.error('上传失败，请检查网络');
+      return false;
+    } finally {
+      setRoomUploading(false);
+    }
+  };
+
   // 9. 查看房型（可以链接到新的房型管理页）
   const handleViewRooms = (hotel) => {
     //message.info(`查看 ${hotel.name} 的房型，后续可以跳转到房型管理页`);
@@ -307,6 +346,25 @@ const HotelList = () => {
     disabled: uploading
   };
 
+  // 房型图片上传组件配置（添加房型弹窗使用）
+  const roomUploadProps = {
+    beforeUpload: async (file) => {
+      if (!file.type.startsWith('image/')) {
+        message.error('只能上传图片文件！');
+        return Upload.LIST_IGNORE;
+      }
+      if (file.size / 1024 / 1024 > 5) {
+        message.error('图片大小不能超过5MB！');
+        return Upload.LIST_IGNORE;
+      }
+      const result = await handleRoomImageUpload(file);
+      // 返回 false 阻止 antd 自动上传，由我们手动上传
+      return result === false ? Upload.LIST_IGNORE : false;
+    },
+    showUploadList: false,
+    disabled: roomUploading
+  };
+
   // 11. 表格列定义
   const columns = [
     {
@@ -316,13 +374,13 @@ const HotelList = () => {
         <div style={{ display: 'flex', alignItems: 'flex-start' }}>
           {record.images?.[0] && (
             <Image
-              src={record.images[0]}
+              src={getImageUrl(record.images[0])}
               width={80}
               height={60}
               style={{ borderRadius: '4px', objectFit: 'cover', marginRight: '12px' }}
               preview={{
                 mask: <EyeOutlined style={{ color: '#fff', fontSize: '16px' }} />,
-                src: record.images[0]
+                src: getImageUrl(record.images[0])
               }}
             />
           )}
@@ -673,8 +731,8 @@ const HotelList = () => {
 		  {imageList.length > 0 && (
 			<div style={{ marginTop: 16, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
 			  {imageList.map((url, i) => (
-				<div key={i} style={{ position: 'relative', width: 80, height: 80 }}>
-				  <Image src={url} width={80} height={80} style={{ objectFit: 'cover' }} />
+        <div key={i} style={{ position: 'relative', width: 80, height: 80 }}>
+          <Image src={getImageUrl(url)} width={80} height={80} style={{ objectFit: 'cover' }} />
 				  <Button type="text" danger size="small" onClick={() => handleRemoveImage(url)}
 					style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(255,255,255,0.8)' }}>
 					×
@@ -778,7 +836,46 @@ const HotelList = () => {
             name="imageUrl"
             label="房型图片"
           >
-            <Input placeholder="输入图片URL或使用上传功能" />
+            <Input placeholder="输入图片URL，或使用下方按钮上传" />
+            <div style={{ marginTop: 8 }}>
+              <Upload {...roomUploadProps}>
+                <Button icon={<UploadOutlined />} loading={roomUploading}>
+                  {roomUploading ? '上传中...' : '上传图片到服务器'}
+                </Button>
+              </Upload>
+            </div>
+            {roomForm.getFieldValue('imageUrl') && (
+              <div style={{ marginTop: 8 }}>
+                <Image
+                  src={getImageUrl(roomForm.getFieldValue('imageUrl'))}
+                  width={80}
+                  height={80}
+                  style={{ objectFit: 'cover', borderRadius: 4 }}
+                />
+                <Button
+                  type="link"
+                  danger
+                  style={{ padding: 0, marginTop: 4 }}
+                  onClick={async () => {
+                    const currentUrl = roomForm.getFieldValue('imageUrl');
+                    if (!currentUrl) return;
+                    try {
+                      const res = await request.delete('/upload', { data: { url: currentUrl } });
+                      if (res.code === 200) {
+                        message.success('图片已删除');
+                        roomForm.setFieldsValue({ imageUrl: '' });
+                      } else {
+                        message.error(res.msg || '删除失败');
+                      }
+                    } catch (error) {
+                      message.error('删除失败');
+                    }
+                  }}
+                >
+                  删除图片
+                </Button>
+              </div>
+            )}
           </Form.Item>
 
 

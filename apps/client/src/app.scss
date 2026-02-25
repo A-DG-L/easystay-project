@@ -1,0 +1,70 @@
+/* =========================================
+   高级新春马年全局主题样式 (微信小程序兼容版)
+========================================= */
+
+/* 1. 将变量直接定义在 page 中，确保小程序能正确读取 */
+page {
+  --cny-bg-top: #fdf6ea;       /* 顶部浅米色（接近首页卡片底色） */
+  --cny-bg-bottom: #f7efe4;    /* 底部略深一点的米色 */
+  --cny-gold-light: #FDE6C5;   /* 浅香槟金（用于文字） */
+  --cny-gold-primary: #D4A35B; /* 主金色（用于边框和强调） */
+  --cny-gold-dark: #9E743A;    /* 暗金色 */
+  --cny-text-main: #333333;    /* 主文字深灰 */
+  --cny-text-muted: rgba(0, 0, 0, 0.45); /* 提示性文字 */
+
+  /* 全局页面背景改为中性浅米色，避免红色转场闪屏 */
+  background: linear-gradient(145deg, var(--cny-bg-top) 0%, var(--cny-bg-bottom) 100%);
+  min-height: 100vh;
+  color: var(--cny-text-main);
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, sans-serif;
+}
+
+/* 2. 高级毛玻璃卡片 */
+.cny-glass-card {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(253, 230, 197, 0.15);
+  border-radius: 32rpx;
+  box-shadow: 0 16rpx 64rpx rgba(0, 0, 0, 0.25);
+  padding: 60rpx 40rpx;
+  margin: 40rpx;
+}
+
+/* 3. 新春主题输入框 */
+.cny-input-group {
+  margin-bottom: 40rpx;
+}
+
+.cny-input {
+  width: 100%;
+  height: 90rpx;
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(212, 163, 91, 0.3);
+  border-radius: 16rpx;
+  padding: 0 30rpx;
+  color: var(--cny-gold-light);
+  font-size: 28rpx;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease;
+}
+
+/* 4. 鎏金渐变按钮 */
+.cny-btn {
+  width: 100%;
+  height: 96rpx;
+  line-height: 96rpx;
+  background: linear-gradient(90deg, #D4A35B 0%, #FDE6C5 50%, #D4A35B 100%);
+  background-size: 200% auto;
+  color: #3B0918;
+  font-size: 32rpx;
+  font-weight: 600;
+  border-radius: 48rpx;
+  border: none;
+  box-shadow: 0 8rpx 32rpx rgba(212, 163, 91, 0.25);
+}
+
+.cny-btn-hover {
+  opacity: 0.9;
+  transform: scale(0.98);
+}

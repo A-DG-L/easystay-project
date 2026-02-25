@@ -16,9 +16,9 @@ export default defineAppConfig({
   ],
   window: {
     backgroundTextStyle: 'light',
-    navigationBarBackgroundColor: '#fff',
+    navigationBarBackgroundColor: '#9B111E', // ⚡️ 改为与背景一致的宝石红
     navigationBarTitleText: '易宿酒店',
-    navigationBarTextStyle: 'black'
+    navigationBarTextStyle: 'white'          // ⚡️ 文字颜色改为白色
   },
   // tabBar 配置
   tabBar: {

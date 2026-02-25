@@ -35,6 +35,15 @@ const HotelPublish = () => {
   const [imageList, setImageList] = useState([]);
   const [allFacilities, setAllFacilities] = useState([]); // 合并后的所有设施
 
+  // 将后端返回的相对路径（/uploads/xxx.jpg）转换为可访问的完整 URL
+  const getImageUrl = (url) => {
+    if (!url) return '';
+    if (url.startsWith('http')) return url;
+    const normalized = url.startsWith('/') ? url : `/${url}`;
+    // 与后端 baseURL 保持一致：http://localhost:3000
+    return `http://localhost:3000${normalized}`;
+  };
+
   // 标准设施选项
   const facilityOptions = [
     '免费WiFi', '游泳池', '健身房', '含早餐', '接送机', 
@@ -292,7 +301,7 @@ const HotelPublish = () => {
                           }}
                         >
                           <img
-                            src={url}
+                            src={getImageUrl(url)}
                             alt={`酒店图片${index + 1}`}
                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                           />

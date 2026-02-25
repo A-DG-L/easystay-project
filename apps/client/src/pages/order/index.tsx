@@ -4,6 +4,8 @@ import { useState } from 'react'
 import Taro from '@tarojs/taro'
 import './index.scss'
 
+import bgImg from '../../assets/images/index_bg_cny.jpg'
+
 // 定义订单状态类型
 type OrderStatus = 'pending' | 'paid' | 'completed' | 'cancelled'
 
@@ -253,7 +255,7 @@ export default function Order() {
   const filteredOrders = filterOrders()
 
   return (
-    <View className='order-container'>
+    <View className='order-container' style={{ backgroundImage: `url(${bgImg})` }}>
       {/* 标签页 */}
       <View className='order-tabs'>
         {[

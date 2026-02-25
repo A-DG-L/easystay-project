@@ -1,19 +1,30 @@
 // pages/my/index.scss
+
+/* ⚡️ 1. 全局容器：设置背景图属性 */
 .profile-container {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  /* 移除原来的 background-color: #f5f5f5; */
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-attachment: fixed; 
+  box-sizing: border-box;
 }
 
 .profile-content {
   height: 100vh;
 }
 
-// 个人信息卡片
+/* ⚡️ 2. 个人信息卡片：保留渐变，但改为半透明+毛玻璃 */
 .profile-card {
-  background: linear-gradient(135deg, #F9C850 0%, #FFB347 100%);
+  /* 把原来的实色渐变改为带透明度的渐变 */
+  background: linear-gradient(135deg, rgba(249, 200, 80, 0.85) 0%, rgba(255, 179, 71, 0.85) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   padding: 40rpx 30rpx;
   border-radius: 0 0 40rpx 40rpx;
   color: #fff;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.05);
   
   .profile-header {
     display: flex;
@@ -30,14 +41,12 @@
     
     .user-info {
       flex: 1;
-      
       .nickname {
         font-size: 36rpx;
         font-weight: bold;
         margin-bottom: 8rpx;
         display: block;
       }
-      
       .username {
         font-size: 28rpx;
         opacity: 0.9;
@@ -55,14 +64,12 @@
       flex: 1;
       text-align: center;
       padding: 20rpx;
-      
       .stat-number {
         font-size: 40rpx;
         font-weight: bold;
         display: block;
         margin-bottom: 8rpx;
       }
-      
       .stat-label {
         font-size: 26rpx;
         opacity: 0.9;
@@ -74,48 +81,47 @@
   .profile-actions {
     display: flex;
     gap: 20rpx;
-    
     button {
       flex: 1;
-      height: 60rpx; // 从70rpx减小到60rpx
+      height: 60rpx;
       line-height: 60rpx;
       background: rgba(255, 255, 255, 0.2);
       color: #fff;
-      font-size: 26rpx; // 从28rpx减小到26rpx
-      border-radius: 30rpx; // 从35rpx减小到30rpx，更圆滑
+      font-size: 26rpx;
+      border-radius: 30rpx;
       border: 1rpx solid rgba(255, 255, 255, 0.3);
-      
-      &::after {
-        border: none;
-      }
-      
-      &:active {
-        background: rgba(255, 255, 255, 0.3);
-      }
+      &::after { border: none; }
+      &:active { background: rgba(255, 255, 255, 0.3); }
     }
   }
 }
 
-// 订单状态卡片 - 简化版（去掉图标）
-.order-status-card {
-  background: #fff;
+/* ⚡️ 3. 通用毛玻璃卡片样式（订单状态、功能列表复用） */
+.glass-card {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
   margin: 20rpx;
-  padding: 30rpx;
   border-radius: 20rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.04);
+}
+
+/* 订单状态卡片 */
+.order-status-card {
+  @extend .glass-card;
+  padding: 30rpx;
   
   .section-title {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 30rpx;
-    
     text {
       font-size: 32rpx;
       font-weight: bold;
       color: #333;
     }
-    
     .order-total {
       font-size: 26rpx;
       color: #999;
@@ -126,41 +132,35 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 20rpx;
-    
     .status-item {
       text-align: center;
-      
       .status-count {
-        font-size: 36rpx; // 增大数字
+        font-size: 36rpx;
         font-weight: bold;
         color: #333;
         display: block;
         margin-bottom: 6rpx;
       }
-      
       .status-label {
-        font-size: 24rpx; // 稍小一点的标签
-        color: #999;
+        font-size: 24rpx;
+        color: #666; /* 稍微加深一点保证在半透明下看得清 */
         display: block;
       }
     }
   }
 }
 
-// 功能列表
+/* 功能列表 */
 .function-list {
-  background: #fff;
-  margin: 20rpx;
+  @extend .glass-card;
   padding: 0 30rpx;
-  border-radius: 20rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
   
   .section-title {
     padding: 30rpx 0;
     font-size: 32rpx;
     font-weight: bold;
     color: #333;
-    border-bottom: 1rpx solid #f0f0f0;
+    border-bottom: 1rpx solid rgba(0, 0, 0, 0.05);
   }
   
   .function-item {
@@ -168,92 +168,68 @@
     justify-content: space-between;
     align-items: center;
     padding: 30rpx 0;
-    border-bottom: 1rpx solid #f0f0f0;
-    
-    &:last-child {
-      border-bottom: none;
-    }
+    border-bottom: 1rpx solid rgba(0, 0, 0, 0.05);
+    &:last-child { border-bottom: none; }
     
     .function-left {
       display: flex;
       align-items: center;
-      
-      .function-icon {
-        width: 60rpx;
-        font-size: 36rpx;
-        margin-right: 20rpx;
-      }
-      
       .function-name {
         font-size: 30rpx;
         color: #333;
       }
     }
-    
-    .function-right {
-      display: flex;
-      align-items: center;
-      gap: 20rpx;
-      
-      .function-badge {
-        background: #F9C850;
-        color: #fff;
-        font-size: 24rpx;
-        padding: 4rpx 16rpx;
-        border-radius: 20rpx;
-      }
-    }
-    
     .function-arrow {
-      color: #ccc;
+      color: #999;
       font-size: 36rpx;
     }
   }
 }
 
-// 退出登录按钮
+/* 退出登录按钮 */
 .action-buttons {
   margin: 20rpx;
   padding: 0 20rpx 40rpx;
   
   .logout-btn {
-    height: 70rpx; // 稍微小一点
-    line-height: 70rpx;
-    background: #fff;
+    height: 80rpx;
+    line-height: 80rpx;
+    /* 按钮也做半透明处理 */
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     color: #F44336;
-    font-size: 28rpx;
-    border-radius: 35rpx; // 圆滑边角
-    border: 1rpx solid #FFCDD2;
+    font-size: 30rpx;
+    border-radius: 40rpx;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.04);
     
-    &::after {
-      border: none;
-    }
-    
-    &:active {
-      background: #FFEBEE;
-    }
+    &::after { border: none; }
+    &:active { background: rgba(255, 235, 238, 0.8); }
   }
 }
 
-// 登录提示页
+/* ⚡️ 4. 未登录时的提示页：也变成毛玻璃卡片 */
 .login-prompt-container {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: #f5f5f5;
+  /* 背景透明，由父级 profile-container 提供背景图 */
+  background: transparent; 
   
   .login-prompt-content {
+    @extend .glass-card;
     text-align: center;
-    padding: 60rpx;
+    padding: 80rpx 60rpx;
+    width: 70%;
     
     .login-icon {
-      font-size: 120rpx;
+      font-size: 100rpx;
       margin-bottom: 30rpx;
       display: block;
-      opacity: 0.5;
+      opacity: 0.8;
     }
-    
     .login-title {
       font-size: 36rpx;
       font-weight: bold;
@@ -261,44 +237,32 @@
       margin-bottom: 20rpx;
       display: block;
     }
-    
     .login-text {
       font-size: 28rpx;
-      color: #999;
-      margin-bottom: 40rpx;
+      color: #666;
+      margin-bottom: 50rpx;
       display: block;
     }
-    
     .login-btn {
-      width: 300rpx;
-      height: 70rpx; // 稍微小一点
-      line-height: 70rpx;
+      width: 100%;
+      height: 80rpx;
+      line-height: 80rpx;
       background: #F9C850;
       color: #fff;
-      font-size: 28rpx;
-      border-radius: 35rpx; // 圆滑边角
-      margin: 0 auto;
-      
-      &::after {
-        border: none;
-      }
-      
-      &:active {
-        background: #E6B848;
-      }
+      font-size: 30rpx;
+      border-radius: 40rpx;
+      box-shadow: 0 8rpx 24rpx rgba(249, 200, 80, 0.4);
+      &::after { border: none; }
+      &:active { opacity: 0.9; transform: scale(0.98); }
     }
   }
 }
 
-// 加载状态
 .loading-container {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  
-  .loading-text {
-    font-size: 28rpx;
-    color: #999;
-  }
+  background: transparent;
+  .loading-text { font-size: 28rpx; color: #666; }
 }

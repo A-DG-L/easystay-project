@@ -1,25 +1,30 @@
 // pages/likes-history/index.scss
 .likes-history-container {
   height: 100vh;
-  background: #f5f5f5;
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   display: flex;
   flex-direction: column;
 }
 
 /* 标签栏 - 固定在顶部 */
 .tab-bar {
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   display: flex;
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 100;
-  height: 88rpx; /* 44px -> 88rpx */
+  height: 88rpx;
   align-items: center;
   justify-content: space-around;
-  border-bottom: 1rpx solid #eee;
-  box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.05);
+  border-bottom: 1rpx solid rgba(255, 255, 255, 0.4); /* 边框变柔和 */
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.02);
 }
 
 .tab-item {
@@ -35,7 +40,7 @@
 }
 
 .tab-item.active {
-  color: #1890ff;
+  color: #A61B29;
 }
 
 .tab-item.active::after {
@@ -45,7 +50,7 @@
   left: 20%;
   right: 20%;
   height: 6rpx; /* 3px -> 6rpx */
-  background: #1890ff;
+  background: #A61B29;
   border-radius: 4rpx; /* 2px -> 4rpx */
   animation: slideIn 0.3s ease;
 }
@@ -62,9 +67,16 @@
 }
 
 .tab-text {
-  font-size: 32rpx; /* 18px -> 32rpx */
+  font-size: 32rpx; 
   font-weight: 500;
   letter-spacing: 0.5rpx;
+  color: #666666; /* ⚡️ 新增：未选中时设为高级的中灰色，保证在毛玻璃上清晰可见 */
+  transition: all 0.3s ease;
+}
+
+.tab-item.active .tab-text {
+  color: #A61B29; /* 选中时变成胭脂红 */
+  font-weight: bold;
 }
 
 .tab-badge {
@@ -84,18 +96,18 @@
 /* 内容区域 - 需要留出标签栏高度 */
 .content {
   flex: 1;
-  margin-top: 88rpx; /* 44px -> 88rpx */
+  margin-top: 88rpx; 
   height: calc(100vh - 88rpx);
-  background: #f5f5f5;
+  background: transparent; /* 移除灰底 */
 }
 
 /* 操作栏 - 清空按钮 */
 .action-bar {
-  background: #ffffff;
-  padding: 20rpx 32rpx; /* 10px 16px -> 20rpx 32rpx */
+  background: transparent;
+  padding: 20rpx 32rpx; 
   display: flex;
   justify-content: flex-end;
-  border-bottom: 1rpx solid #eee;
+  border-bottom: none; /* 移除横线 */
 }
 
 .clear-btn {
@@ -191,11 +203,14 @@
 
 /* 酒店项目 */
 .hotel-item {
-  background: white;
-  border-radius: 24rpx; /* 12px -> 24rpx */
-  margin-bottom: 24rpx; /* 12px -> 24rpx */
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 24rpx; 
+  margin-bottom: 24rpx; 
   overflow: hidden;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.04);
   transition: all 0.3s ease;
   position: relative;
   display: flex;
@@ -346,21 +361,27 @@
 /* 登录提示页面 */
 .login-prompt-container {
   height: 100vh;
-  background: #f5f5f5;
+  /* 移除 background: #f5f5f5; */
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40rpx; /* 20px -> 40rpx */
+  padding: 40rpx; 
 }
 
 .login-prompt-content {
-  background: white;
-  border-radius: 32rpx; /* 16px -> 32rpx */
-  padding: 80rpx 48rpx; /* 40px 24px -> 80rpx 48rpx */
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 32rpx; 
+  padding: 80rpx 48rpx; 
   text-align: center;
-  max-width: 600rpx; /* 300px -> 600rpx */
+  max-width: 600rpx; 
   width: 100%;
-  box-shadow: 0 8rpx 40rpx rgba(0, 0, 0, 0.08);
+  box-shadow: 0 16rpx 40rpx rgba(0, 0, 0, 0.06);
   animation: fadeIn 0.5s ease;
 }
 

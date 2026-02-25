@@ -3,7 +3,7 @@ import { View, Input, Button, Text } from '@tarojs/components'
 import { 
   useLoad, 
   setStorageSync, 
-  getStorageSync,  // 添加获取存储的方法
+  getStorageSync,
   showToast, 
   switchTab, 
   navigateTo 
@@ -11,13 +11,14 @@ import {
 import request from '../../utils/request'
 import './index.scss'
 
+// ⚡️ 1. 引入同款背景图 (请确保路径和你实际存放的位置一致)
+import bgImg from '../../assets/images/register_bg_cny.jpg'
+
 export default function Login() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
 
-  // 添加页面加载时的检查
   useLoad(() => {
-    // 如果已经登录，直接跳转到首页 - 使用 getStorageSync 获取token
     const token = getStorageSync('token')
     if (token) {
       switchTab({ url: '/pages/index/index' })
@@ -31,36 +32,30 @@ export default function Login() {
     }
 
     try {
-      // 1. 调用接口
       const res = await request({
         url: '/auth/login',
         method: 'POST',
         data: { username, password }
       })
 
-      // 2. 检查响应结构
       if (!res.data || !res.data.token) {
         showToast({ title: '登录响应异常', icon: 'none' })
         return
       }
 
-      // 3. 存 Token 和用户信息
       setStorageSync('token', res.data.token)
       if (res.data.user) {
         setStorageSync('userInfo', res.data.user)
       }
 
-      // 4. 检查角色
       if (res.data.user?.role && res.data.user.role !== 'user') {
         showToast({ title: '商户请去PC端登录', icon: 'none' })
-        // 清除已存储的token
         setStorageSync('token', '')
         return
       }
 
       showToast({ title: '登录成功', icon: 'success' })
       
-      // 5. 跳转回首页
       setTimeout(() => {
         switchTab({ url: '/pages/index/index' })
       }, 1000)
@@ -90,38 +85,52 @@ export default function Login() {
   }
 
   return (
-    <View className='login-container'>
-      <View className='login-header'>
-        <Text className='title'>易宿酒店 - 用户登录</Text>
-      </View>
+    /* ⚡️ 2. 将背景图应用到最外层容器 */
+    <View className='login-container' style={{ backgroundImage: `url(${bgImg})` }}>
       
-      <View className='login-form'>
-        <Input 
-          className='input-field'
-          placeholder='请输入用户名' 
-          value={username} 
-          onInput={(e) => setUsername(e.detail.value)}
-        />
+      {/* ⚡️ 3. 被挤到卷轴中央的内容区 */}
+      <View className="scroll-content-area">
         
-        <Input 
-          className='input-field'
-          placeholder='请输入密码' 
-          password 
-          value={password} 
-          onInput={(e) => setPassword(e.detail.value)}
-        />
+        <View>
+          <Text className="main-title">易宿酒店</Text>
+          <Text className="sub-title">甲辰马年 · 迎新纳福</Text>
+        </View>
+        
+        <View className="cny-input-group-scroll">
+          <Input 
+            className='cny-input-scroll'
+            placeholder='请输入用户名' 
+            value={username} 
+            onInput={(e) => setUsername(e.detail.value)}
+            placeholderStyle="color: #998A7A;"
+          />
+        </View>
+        
+        <View className="cny-input-group-scroll">
+          <Input 
+            className='cny-input-scroll'
+            placeholder='请输入密码' 
+            password 
+            value={password} 
+            onInput={(e) => setPassword(e.detail.value)}
+            placeholderStyle="color: #998A7A;"
+          />
+        </View>
 
-        <Button 
-          className='login-btn'
-          type='primary' 
-          onClick={handleLogin}
-        >
-          登录
-        </Button>
+        <View className="login-btn-area">
+          <Button 
+            className='cny-btn-primary' /* 复用 app.scss 中的胭脂红按钮 */
+            hoverClass="cny-btn-hover"
+            onClick={handleLogin}
+          >
+            立即登录
+          </Button>
+        </View>
         
         <View className='register-link'>
           <Text onClick={gotoRegister}>没有账号？立即注册</Text>
         </View>
+
       </View>
     </View>
   )

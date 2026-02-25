@@ -1,12 +1,31 @@
 /* pages/index/index.scss */
+
+.index {
+  min-height: 100vh;
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  /* 加上 fixed 防止列表过长滚动时背景断层 */
+  background-attachment: fixed; 
+  box-sizing: border-box;
+}
+
+/* ⚡️ 2. 给主内容区加一点内边距，让轮播图和卡片不贴边 */
+.main-content {
+  padding: 20rpx;
+  box-sizing: border-box;
+}
+
+/* 原有的 .ad-swiper 不变，但可以稍微加一点呼吸感 */
 .ad-swiper {
   width: 100%;
   height: 400rpx;
   position: relative;
   border-radius: 16rpx;
   overflow: hidden;
-  box-shadow: 0 6rpx 20rpx rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.1); /* 稍微柔和一点的阴影 */
 }
+
 
 .banner-item {
   width: 100%;
@@ -32,7 +51,7 @@
   color: #fff;
   padding: 6rpx 16rpx;
   border-radius: 20rpx;
-  font-size: 22rpx;
+  font-size: var(--fz-caption);
   font-weight: 500;
   z-index: 100;
   backdrop-filter: blur(10px);
@@ -44,7 +63,7 @@
 }
 
 .ad-text {
-  font-size: 20rpx;
+  font-size: var(--fz-caption);
   font-weight: 500;
   opacity: 0.95;
 }
@@ -58,7 +77,7 @@
   color: #fff;
   padding: 6rpx 12rpx;
   border-radius: 16rpx;
-  font-size: 20rpx;
+  font-size: var(--fz-caption);
   z-index: 99;
   backdrop-filter: blur(10px);
   display: flex;
@@ -66,7 +85,7 @@
 }
 
 .hint-text {
-  font-size: 18rpx;
+  font-size: var(--fz-caption);
   opacity: 0.9;
 }
 
@@ -83,7 +102,7 @@
 }
 
 .hotel-name {
-  font-size: 36rpx;
+  font-size: var(--fz-title);
   font-weight: bold;
   margin-bottom: 10rpx;
   display: block;
@@ -97,12 +116,12 @@
 }
 
 .hotel-star {
-  font-size: 24rpx;
+  font-size: var(--fz-caption);
   color: #F9BE3E; /* 主色调 */
 }
 
 .hotel-address {
-  font-size: 24rpx;
+  font-size: var(--fz-caption);
   opacity: 0.9;
   flex: 1;
   text-align: right;
@@ -118,7 +137,7 @@
 }
 
 .price-text {
-  font-size: 28rpx;
+  font-size: var(--fz-body);
   font-weight: bold;
   color: #F9BE3E; /* 主色调 */
 }
@@ -130,16 +149,23 @@
   align-items: center;
   background: #f5f5f5;
   border-radius: 16rpx;
-  font-size: 28rpx;
+  font-size: var(--fz-body);
   color: #666;
 }
 
 .search-card {
-  background: #fff;
-  border-radius: 16rpx;
+  /* 使用半透明的白色背景透出底部的云纹 */
+  background: rgba(255, 255, 255, 0.75); 
+  /* 开启毛玻璃模糊效果 */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  /* 加上极细的白边增强质感 */
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  
+  border-radius: 24rpx; /* 圆角稍微大一点更现代 */
   padding: 30rpx;
   margin-top: 30rpx;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
+  box-shadow: 0 16rpx 40rpx rgba(0, 0, 0, 0.06);
 }
 
 /* 卡片头部居中对齐 */
@@ -151,7 +177,7 @@
 }
 
 .card-title {
-  font-size: 36rpx;
+  font-size: var(--fz-title);
   font-weight: bold;
   color: #333;
   display: block;
@@ -159,7 +185,7 @@
 }
 
 .card-subtitle {
-  font-size: 24rpx;
+  font-size: var(--fz-caption);
   color: #999;
   display: block;
 }
@@ -170,7 +196,7 @@
 }
 
 .form-label {
-  font-size: 28rpx;
+  font-size: var(--fz-body);
   color: #333;
   margin-bottom: 12rpx;
   display: block;
@@ -347,6 +373,16 @@
   font-size: 28rpx;
   background: #fff;
   transition: all 0.3s ease;
+}
+
+.clickable-section, .keyword-input {
+  background: rgba(255, 255, 255, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.8) !important;
+}
+
+.nights-control, .room-controls {
+  background: rgba(249, 190, 62, 0.1) !important; /* 浅金色背景 */
+  border: 1px solid rgba(249, 190, 62, 0.2) !important;
 }
 
 .keyword-input:focus {

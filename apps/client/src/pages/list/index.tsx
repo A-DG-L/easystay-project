@@ -4,6 +4,9 @@ import { useState } from 'react'
 import request from '../../utils/request'
 import './index.scss'
 
+// 后端基础地址，用于拼接相对图片路径
+const BASE_URL = 'http://localhost:3000'
+
 // 定义查询参数接口
 interface SearchParams {
   city?: string;
@@ -32,6 +35,18 @@ interface Hotel {
   facilities?: string[];
   score?: number;
   description?: string;
+}
+
+// 将后端返回的图片路径转换为可访问的完整 URL
+const getFullImageUrl = (url?: string): string => {
+  if (!url) return ''
+  // 已经是完整 URL
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url
+  }
+  // 统一补上前导斜杠
+  const normalized = url.startsWith('/') ? url : `/${url}`
+  return `${BASE_URL}${normalized}`
 }
 
 // 星级选项类型
@@ -843,7 +858,7 @@ export default function HotelList() {
       >
         <Image 
           className='hotel-image'
-          src={hotel.images?.[0] || ''}
+          src={getFullImageUrl(hotel.images?.[0])}
           mode='aspectFill'
         />
         

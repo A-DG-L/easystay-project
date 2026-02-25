@@ -5,6 +5,7 @@ import Taro from '@tarojs/taro'
 import request from '../../utils/request'
 import './index.scss'
 
+import bgImg from '../../assets/images/index_bg_cny.jpg'
 // 默认头像
 const DEFAULT_AVATAR = 'https://api.dicebear.com/7.x/avataaars/png?seed=default&size=40'
 const BASE_URL = 'http://localhost:3000'
@@ -271,39 +272,46 @@ export default function Profile() {
     }
   }
 
-  // 页面显示时刷新数据
-  useDidShow(() => {
-    console.log('个人中心页面显示，刷新数据')
-    if (isLoggedIn) {
+  // 页面加载时初始化登录状态 + 数据
+  useLoad(() => {
+    const token = Taro.getStorageSync('token')
+    const loggedIn = !!token
+    setIsLoggedIn(loggedIn)
+    if (loggedIn) {
       loadUserProfile()
       loadOrderStats()
     }
   })
 
-  useLoad(() => {
-    loadUserProfile()
-    loadOrderStats()
-  })
-
-  // 监听登录状态
-  useEffect(() => {
+  // 每次切换到“我的”标签页时重新检查登录状态
+  useDidShow(() => {
+    console.log('个人中心页面显示，刷新数据')
     const token = Taro.getStorageSync('token')
-    setIsLoggedIn(!!token)
-  }, [])
+    const loggedIn = !!token
+    setIsLoggedIn(loggedIn)
+
+    if (loggedIn) {
+      loadUserProfile()
+      loadOrderStats()
+    }
+  })
 
   if (!isLoggedIn) {
     return (
-      <View className='login-prompt-container'>
-        <View className='login-prompt-content'>
-          <Text className='login-icon'>🔒</Text>
-          <Text className='login-title'>请先登录</Text>
-          <Text className='login-text'>登录后查看个人信息</Text>
-          <Button 
-            className='login-btn'
-            onClick={() => navigateTo({ url: '/pages/login/index' })}
-          >
-            立即登录
-          </Button>
+      // 外层加上背景图
+      <View className='profile-container' style={{ backgroundImage: `url(${bgImg})` }}>
+        <View className='login-prompt-container'>
+          <View className='login-prompt-content'>
+            <Text className='login-icon'>🔒</Text>
+            <Text className='login-title'>请先登录</Text>
+            <Text className='login-text'>登录后查看个人信息</Text>
+            <Button 
+              className='login-btn'
+              onClick={() => navigateTo({ url: '/pages/login/index' })}
+            >
+              立即登录
+            </Button>
+          </View>
         </View>
       </View>
     )
@@ -311,9 +319,11 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <View className='loading-container'>
-        <View className='loading-content'>
-          <Text className='loading-text'>加载中...</Text>
+      <View className='profile-container' style={{ backgroundImage: `url(${bgImg})` }}>
+        <View className='loading-container'>
+          <View className='loading-content'>
+            <Text className='loading-text'>加载中...</Text>
+          </View>
         </View>
       </View>
     )
@@ -321,8 +331,10 @@ export default function Profile() {
 
   const userInfo = profileData?.userInfo
 
+  // ⚡️ 修改 2：正常状态下的主视图
   return (
-    <View className='profile-container'>
+    // 外层加上背景图
+    <View className='profile-container' style={{ backgroundImage: `url(${bgImg})` }}>
       <ScrollView className='profile-content' scrollY enableBackToTop>
         {/* 个人信息卡片 */}
         <View className='profile-card'>

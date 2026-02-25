@@ -1,0 +1,90 @@
+/* pages/register/index.scss */
+
+/* 引用全局变量 (确保路径正确) */
+@import "../../app.scss";
+
+/* 1. 全屏背景容器 */
+.register-container {
+  position: relative;
+  width: 100vw;
+  min-height: 100vh;
+  /* 背景图设置：居中置顶，覆盖全屏 */
+  background-position: center top;
+  background-size: cover; 
+  background-repeat: no-repeat;
+  
+  /* 使用 Flex 布局来居中内容 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  
+  /* ⚡️ 核心关键点：通过 padding-top 把内容挤到画面的卷轴区域 */
+  /* 这个值可能需要根据实际真机效果微调，建议在 40vh - 48vh 之间 */
+  padding-top: 52vh; 
+  box-sizing: border-box;
+}
+
+/* 2. 卷轴内容区域容器 */
+.scroll-content-area {
+  width: 76%; /* 宽度控制在卷轴左右边界内 */
+  /* 临时调试边框，调好位置后删除下面这行 */
+  // border: 1px solid red; 
+  padding: 10rpx 30rpx 40rpx;
+  /* 这里不需要背景色，因为底色就是图片的卷轴 */
+}
+
+/* 3. 页面主标题 (易宿酒店) */
+.main-title {
+  display: block;
+  text-align: center;
+  /* 提取画面中的深红色或金色 */
+  color: #A61B29; 
+  font-size: 56rpx;
+  font-weight: bold;
+  letter-spacing: 8rpx;
+  margin-bottom: 10rpx;
+  text-shadow: 0 2rpx 4rpx rgba(166, 27, 41, 0.2);
+}
+
+/* 4. 副标题 */
+.sub-title {
+  display: block;
+  text-align: center;
+  color: #C8A063; /* 哑光金 */
+  font-size: 28rpx;
+  letter-spacing: 4rpx;
+  margin-bottom: 30rpx;
+}
+
+/* 5. 针对卷轴优化的输入框 */
+.cny-input-group-scroll {
+  margin-bottom: 24rpx;
+}
+
+.cny-input-scroll {
+  width: 100%;
+  height: 96rpx;
+  /* 背景透明，透出卷轴的纸张质感 */
+  background-color: rgba(255, 255, 255, 0.3); 
+  /* 细金边框 */
+  border: 2rpx solid rgba(200, 160, 99, 0.5);
+  border-radius: 16rpx;
+  padding: 0 32rpx;
+  color: #333; /* 输入文字颜色偏深 */
+  font-size: 30rpx;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+
+/* 输入框聚焦时的效果 */
+.cny-input-scroll:focus {
+  border-color: #A61B29; /* 聚焦变红 */
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
+/* 6. 按钮复用全局的胭脂红样式即可，但也稍微加点阴影让它更立体 */
+.register-btn-area {
+    margin-top: 40rpx;
+    box-shadow: 0 16rpx 32rpx rgba(166, 27, 41, 0.3);
+    border-radius: 12rpx;
+}

@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import Taro from '@tarojs/taro'
 import './index.scss'
 
+import bgImg from '../../assets/images/index_bg_cny.jpg'
+
 // 类型定义
 interface HotelItem {
   _id: string
@@ -524,7 +526,7 @@ export default function LikesHistory() {
   // 如果Token失效，显示重新登录的提示
   if (!isLoggedIn && !getToken()) {
     return (
-      <View className='login-prompt-container'>
+      <View className='login-prompt-container' style={{ backgroundImage: `url(${bgImg})` }}>
         <View className='login-prompt-content'>
           <Text className='login-icon'>🔒</Text>
           <Text className='login-title'>请先登录</Text>
@@ -547,8 +549,8 @@ export default function LikesHistory() {
   }
 
   return (
-    <View className='likes-history-container'>
-      {/* 标签切换 - 直接显示标签栏，没有顶部导航 */}
+    <View className='likes-history-container' style={{ backgroundImage: `url(${bgImg})` }}>
+      {/* 标签切换 */}
       <View className='tab-bar'>
         <View 
           className={`tab-item ${activeTab === 'collections' ? 'active' : ''}`}
