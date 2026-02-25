@@ -20,9 +20,13 @@ router.post('/', authMiddleware, isMerchant, async (ctx) => {
     // 建议修改为：
     const { 
       name, address, starLevel, openingTime, 
-      description, facilities, images, minPrice, score ,rejectReason
+      description, facilities, images, minPrice, score, rejectReason, phone
     } = ctx.request.body;
     const merchantId = ctx.state.user.id; // 从 Token 获取商户ID
+
+    if (!phone || !phone.trim()) {
+      return ctx.body = errorResponse(400, '联系电话不能为空');
+    }
 
     const newHotel = new Hotel({
       merchantId,
@@ -34,6 +38,7 @@ router.post('/', authMiddleware, isMerchant, async (ctx) => {
       minPrice,
       images,
       openingTime,
+      phone: phone.trim(),
       status: 'pending', // 默认为审核中 [cite: 36]
       rejectReason,
       score

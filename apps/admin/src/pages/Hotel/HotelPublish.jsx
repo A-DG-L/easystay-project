@@ -118,6 +118,7 @@ const HotelPublish = () => {
       minPrice: Number(values.minPrice) || 0,
       facilities: allFacilitiesList,  // 合并后的设施列表
       images: imageList,
+      phone: values.phone,
       score: 4.5,  // 默认评分
       status: 'pending'  // 默认为审核中
     };
@@ -205,6 +206,20 @@ const HotelPublish = () => {
                 rules={[{ required: true, message: '请输入酒店地址' }]}
               >
                 <Input placeholder="省/市/区/街道/门牌号" size="large" />
+              </Form.Item>
+
+              <Form.Item
+                name="phone"
+                label="联系电话"
+                rules={[
+                  { required: true, message: '请输入联系电话' },
+                  {
+                    pattern: /^1\d{10}$/,
+                    message: '请输入11位手机号码'
+                  }
+                ]}
+              >
+                <Input placeholder="例如：13800000000" size="large" />
               </Form.Item>
 
               

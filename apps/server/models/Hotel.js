@@ -20,6 +20,9 @@ const hotelSchema = new mongoose.Schema({
 
   // 最低价格（列表页展示）
   minPrice: { type: Number },
+
+  // 联系电话（前台展示，商户发布时必填）
+  phone: { type: String },
   
   // 状态管理：pending(审核中), published(已发布/审核通过), offline(已下线/审核不通过)
   status: { 

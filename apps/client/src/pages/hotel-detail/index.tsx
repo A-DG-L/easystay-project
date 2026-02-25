@@ -15,6 +15,7 @@ interface Hotel {
   minPrice: number
   images: string[]
   isLiked?: boolean
+  phone?: string
 }
 
 interface RoomType {
@@ -176,7 +177,8 @@ export default function HotelDetail() {
           facilities: data.facilities || [],
           minPrice: data.minPrice || 0,
           images: hotelImages,
-          isLiked: false
+          isLiked: false,
+          phone: data.phone || ''
         })
         
         // 并行加载其他数据
@@ -822,16 +824,31 @@ export default function HotelDetail() {
         </View>
 
         {/* 联系按钮 */}
-        <Button className='contact-btn' onClick={() => {
-          showModal({
-            title: '联系方式',
-            content: '客服电话：400-888-9999',
-            confirmText: '复制',
-            success: (res) => {
-              if (res.confirm) Taro.setClipboardData({ data: '400-888-9999' })
+        <Button
+          className='contact-btn'
+          onClick={() => {
+            if (!hotel || !hotel.phone) {
+              showToast({ title: '暂无酒店联系电话', icon: 'none' })
+              return
             }
-          })
-        }}>
+
+            const phone = hotel.phone
+
+            showModal({
+              title: '联系方式',
+              content: `客服电话：${phone}`,
+              confirmText: '呼叫',
+              cancelText: '复制号码',
+              success: (res) => {
+                if (res.confirm) {
+                  Taro.makePhoneCall({ phoneNumber: phone })
+                } else if (res.cancel) {
+                  Taro.setClipboardData({ data: phone })
+                }
+              }
+            })
+          }}
+        >
           联系酒店
         </Button>
       </ScrollView>
