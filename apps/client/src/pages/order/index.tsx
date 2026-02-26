@@ -6,7 +6,7 @@ import './index.scss'
 
 import bgImg from '../../assets/images/index_bg_cny.jpg'
 
-// 定义订单状态类型
+// 定义订单状态类型（保持与后端一致）
 type OrderStatus = 'pending' | 'paid' | 'completed' | 'cancelled'
 
 // 定义订单类型接口
@@ -26,7 +26,7 @@ interface Order {
   guestPhone: string
   orderTime: string
   status: OrderStatus
-  reviewed: boolean
+  reviewed: boolean  // 标记是否已评价
   [key: string]: any
 }
 
@@ -38,6 +38,7 @@ export default function Order() {
 
   // 每次页面显示时重新加载订单
   useDidShow(() => {
+    console.log('订单页面显示，重新加载')
     loadOrders()
   })
 
@@ -49,13 +50,14 @@ export default function Order() {
   const loadLocalComments = () => {
     const localComments = Taro.getStorageSync('comments') || []
     setComments(localComments)
+    return localComments
   }
 
   // 加载订单
   const loadOrders = async () => {
     try {
       setLoading(true)
-      loadLocalComments()
+      const latestComments = loadLocalComments()
       
       let orderList: any[] = []
       const token = Taro.getStorageSync('token')
@@ -83,9 +85,15 @@ export default function Order() {
         let hotelName = '未知酒店'
         let roomName = '未知房型'
         let roomPrice = 0
-        if (order.hotelId && typeof order.hotelId === 'object') hotelName = order.hotelId.name || '未知酒店'
-        else hotelName = order.hotelName || order.hotel_name || '未知酒店'
+        
+        // 处理酒店信息
+        if (order.hotelId && typeof order.hotelId === 'object') {
+          hotelName = order.hotelId.name || '未知酒店'
+        } else {
+          hotelName = order.hotelName || order.hotel_name || '未知酒店'
+        }
 
+        // 处理房型信息
         if (order.roomId && typeof order.roomId === 'object') {
           roomName = order.roomId.name || '未知房型'
           roomPrice = order.roomId.price || 0
@@ -94,14 +102,14 @@ export default function Order() {
           roomPrice = order.roomPrice || order.room_price || 0
         }
 
-        let reviewed = order.reviewed || false
-        // 检查本地评论是否存在该订单
-        if (!reviewed && comments.some(c => c.orderId === order.id)) {
-          reviewed = true
+        // 处理日期格式（处理MongoDB的特殊日期格式）
+        const formatDateStr = (dateStr: any) => {
+          if (!dateStr) return ''
+          if (typeof dateStr === 'object' && dateStr.$date) {
+            return new Date(dateStr.$date).toISOString().split('T')[0]
+          }
+          return dateStr
         }
-
-        // 确保 status 是 OrderStatus 类型
-        const status = order.status as OrderStatus
 
         return {
           id: order.id || order._id || '',
@@ -110,20 +118,27 @@ export default function Order() {
           hotelName,
           roomName,
           roomPrice,
-          checkInDate: order.checkInDate || order.check_in_date || '',
-          checkOutDate: order.checkOutDate || order.check_out_date || '',
+          checkInDate: formatDateStr(order.checkInDate || order.check_in_date),
+          checkOutDate: formatDateStr(order.checkOutDate || order.check_out_date),
           nights: order.nights || order.nightCount || 1,
           roomCount: order.roomCount || order.room_count || 1,
           totalPrice: order.totalPrice || order.total_price || 0,
           guestName: order.guestName || order.guest_name || '',
           guestPhone: order.guestPhone || order.guest_phone || '',
           orderTime: order.orderTime || order.createdAt || order.create_time || '',
-          status: status,
-          reviewed
+          status: order.status as OrderStatus,
+          reviewed: false // 初始设为 false，后面会根据评论缓存更新
         }
       })
 
-      setOrders(validOrders)
+      // 根据最新的评论缓存更新 reviewed 状态
+      const updatedOrders = validOrders.map(order => ({
+        ...order,
+        reviewed: latestComments.some(c => c.orderId === order.id)
+      }))
+
+      console.log('处理后的订单数据:', updatedOrders)
+      setOrders(updatedOrders)
     } catch (error) {
       console.error('加载订单失败:', error)
       showToast({ title: '加载订单失败', icon: 'none' })
@@ -132,28 +147,46 @@ export default function Order() {
     }
   }
 
+  // 过滤订单（根据选中的标签页）
   const filterOrders = (): Order[] => {
     switch (activeTab) {
-      case 'pending': return orders.filter(o => o.status === 'pending')
-      case 'paid': return orders.filter(o => o.status === 'paid')
-      case 'completed': return orders.filter(o => o.status === 'completed' && !o.reviewed)
-      case 'reviewed': return orders.filter(o => o.reviewed)
-      case 'cancelled': return orders.filter(o => o.status === 'cancelled')
-      default: return orders
+      case 'pending': 
+        return orders.filter(o => o.status === 'pending')
+      case 'paid': 
+        // 待使用：只显示状态为 paid 且未评价的订单
+        return orders.filter(o => o.status === 'paid' && !o.reviewed)
+      case 'pending-review': 
+        // 待评价：后端状态是 completed 且未评价
+        return orders.filter(o => o.status === 'completed' && !o.reviewed)
+      case 'completed': 
+        // 已完成：已评价的订单（无论后端状态）
+        return orders.filter(o => o.reviewed)
+      case 'cancelled': 
+        return orders.filter(o => o.status === 'cancelled')
+      default: 
+        return orders
     }
   }
 
+  // 获取状态显示信息
   const getStatusInfo = (order: Order) => {
-    if (order.reviewed) return { text: '已评价', className: 'reviewed' }
+    // 已评价的状态显示"已完成"
+    if (order.reviewed) {
+      return { text: '已完成', className: 'completed' }
+    }
+    
+    // 普通状态映射
     const map = {
       pending: { text: '待支付', className: 'pending' },
       paid: { text: '待使用', className: 'paid' },
-      completed: { text: '待评价', className: 'completed' },
+      completed: { text: '待评价', className: 'pending-review' }, // 后端的 completed 在前端显示为"待评价"
       cancelled: { text: '已取消', className: 'cancelled' }
     }
+    
     return map[order.status] || { text: '未知', className: 'unknown' }
   }
 
+  // 处理支付
   const handlePay = (order: Order) => {
     showModal({
       title: '确认支付',
@@ -213,33 +246,61 @@ export default function Order() {
     })
   }
 
+  // 处理评价
   const handleReview = (order: Order) => {
-    navigateTo({ url: `/pages/hotel-detail/index?id=${order.hotelId}&tab=comment&orderId=${order.id}` })
+    navigateTo({ 
+      url: `/pages/hotel-detail/index?id=${order.hotelId}&tab=comment&orderId=${order.id}` 
+    })
   }
 
+  // 处理入住确认
   const handleUse = (order: Order) => {
     showModal({
       title: '确认入住',
       content: '确认已办理入住？',
       confirmText: '确认入住',
       confirmColor: '#F9BE3E',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          const updatedOrders = orders.map(o => 
-            o.id === order.id ? { ...o, status: 'completed' as OrderStatus, reviewed: false } : o
-          )
-          setOrders(updatedOrders)
-          Taro.setStorageSync('orders', updatedOrders)
-          showModal({
-            title: '入住成功',
-            content: '是否立即评价？',
-            confirmText: '去评价',
-            cancelText: '稍后评价',
-            confirmColor: '#F9BE3E',
-            success: modalRes => {
-              if (modalRes.confirm) handleReview(order)
+          const token = Taro.getStorageSync('token')
+
+          try {
+            showToast({ title: '处理中...', icon: 'loading' })
+
+            // 调用后端 API 更新订单状态为 completed
+            if (token) {
+              await Taro.request({
+                url: `http://localhost:3000/api/orders/${order.id}/checkin`,
+                method: 'POST',
+                header: { Authorization: token }
+              })
             }
-          })
+
+            Taro.hideToast()
+
+            // 更新本地状态
+            const updatedOrders = orders.map(o => 
+              o.id === order.id ? { ...o, status: 'completed' as OrderStatus } : o
+            )
+            setOrders(updatedOrders)
+            Taro.setStorageSync('orders', updatedOrders)
+            
+            // 提示是否评价
+            showModal({
+              title: '入住成功',
+              content: '是否立即评价？',
+              confirmText: '去评价',
+              cancelText: '稍后评价',
+              confirmColor: '#F9BE3E',
+              success: modalRes => {
+                if (modalRes.confirm) handleReview(order)
+              }
+            })
+          } catch (error) {
+            console.error('入住确认失败:', error)
+            Taro.hideToast()
+            showToast({ title: '操作失败，请重试', icon: 'none' })
+          }
         }
       }
     })
@@ -262,8 +323,8 @@ export default function Order() {
           { key: 'all', text: '全部' },
           { key: 'pending', text: '待支付' },
           { key: 'paid', text: '待使用' },
-          { key: 'completed', text: '待评价' },
-          { key: 'reviewed', text: '已评价' },
+          { key: 'pending-review', text: '待评价' },
+          { key: 'completed', text: '已完成' },
           { key: 'cancelled', text: '已取消' }
         ].map(tab => (
           <View
@@ -338,43 +399,46 @@ export default function Order() {
 
                 {/* 操作按钮 - 根据状态显示 */}
                 <View className='action-buttons'>
-                  {/* 待支付 - 显示去支付按钮 */}
-                  {order.status === 'pending' && (
-                    <Button 
-                      className='pay-btn' 
-                      onClick={() => handlePay(order)}
-                    >
-                      去支付
-                    </Button>
-                  )}
+                  {/* 已评价的订单不显示任何操作按钮，只显示"已完成" */}
+                  {!order.reviewed ? (
+                    <>
+                      {/* 待支付 - 显示去支付按钮 */}
+                      {order.status === 'pending' && (
+                        <Button 
+                          className='pay-btn' 
+                          onClick={() => handlePay(order)}
+                        >
+                          去支付
+                        </Button>
+                      )}
 
-                  {/* 待使用 - 显示确认入住按钮 */}
-                  {order.status === 'paid' && !order.reviewed && (
-                    <Button 
-                      className='use-btn' 
-                      onClick={() => handleUse(order)}
-                    >
-                      确认入住
-                    </Button>
-                  )}
+                      {/* 待使用 - 显示确认入住按钮 */}
+                      {order.status === 'paid' && (
+                        <Button 
+                          className='use-btn' 
+                          onClick={() => handleUse(order)}
+                        >
+                          确认入住
+                        </Button>
+                      )}
 
-                  {/* 待评价 - 显示去评价按钮 */}
-                  {order.status === 'completed' && !order.reviewed && (
-                    <Button 
-                      className='review-btn' 
-                      onClick={() => handleReview(order)}
-                    >
-                      去评价
-                    </Button>
-                  )}
-
-                  {/* 已评价 - 显示已评价（禁用） */}
-                  {order.reviewed && (
+                      {/* 待评价 - 显示去评价按钮（后端状态为 completed 且未评价） */}
+                      {order.status === 'completed' && !order.reviewed && (
+                        <Button 
+                          className='review-btn' 
+                          onClick={() => handleReview(order)}
+                        >
+                          去评价
+                        </Button>
+                      )}
+                    </>
+                  ) : (
+                    /* 已评价 - 显示已完成按钮（禁用） */
                     <Button 
                       className='reviewed-btn' 
                       disabled
                     >
-                      已评价
+                      已完成
                     </Button>
                   )}
                 </View>

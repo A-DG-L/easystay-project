@@ -393,55 +393,8 @@ export default function HotelDetail() {
     }
   }
 
-  const handleImageUpload = async () => {
-    if (commentForm.images.length >= 3) {
-      showToast({ title: '最多上传3张', icon: 'none' })
-      return
-    }
-
-    try {
-      const res = await Taro.chooseImage({ count: 3 - commentForm.images.length })
-      if (!res.tempFilePaths.length) return
-
-      setUploading(true)
-      showToast({ title: '上传中...', icon: 'loading' })
-
-      const uploadPromises = res.tempFilePaths.map(async (filePath) => {
-        const token = Taro.getStorageSync('token')
-        return new Promise<string>((resolve, reject) => {
-          Taro.uploadFile({
-            url: `${BASE_URL}/api/upload`,
-            filePath,
-            name: 'file',
-            header: { 'Authorization': token },
-            success: (res) => {
-              try {
-                const result = JSON.parse(res.data)
-                if (result.code === 200) {
-                  let url = result.data?.url || result.data
-                  if (url?.startsWith('/')) url = BASE_URL + url
-                  resolve(url)
-                } else {
-                  reject(new Error(result.msg))
-                }
-              } catch {
-                reject(new Error('上传失败'))
-              }
-            },
-            fail: reject
-          })
-        })
-      })
-
-      const urls = await Promise.all(uploadPromises)
-      setCommentForm(prev => ({ ...prev, images: [...prev.images, ...urls] }))
-      showToast({ title: '上传成功', icon: 'success' })
-    } catch (error) {
-      showToast({ title: '上传失败', icon: 'none' })
-    } finally {
-      setUploading(false)
-    }
-  }
+  // 删除 handleImageUpload 函数
+  // const handleImageUpload = async () => { ... }
 
   const submitComment = async () => {
     if (!commentForm.content.trim()) {
@@ -479,7 +432,7 @@ export default function HotelDetail() {
           userId: userInfo.id || userInfo._id,
           content: commentForm.content,
           rating: commentForm.rating,
-          images: commentForm.images,
+          images: commentForm.images, // 保持原有逻辑
           createdAt: new Date().toISOString()
         }
         
@@ -881,23 +834,15 @@ export default function HotelDetail() {
                 maxlength={500}
               />
 
-              <View className='upload-area'>
-                <Button 
-                  className='upload-btn' 
-                  onClick={handleImageUpload}
-                  disabled={uploading}
-                >
+              {/* 删除上传区域 */}
+              {/* <View className='upload-area'>
+                <Button className='upload-btn' onClick={handleImageUpload} disabled={uploading}>
                   {uploading ? '上传中' : '+ 添加图片'}
                 </Button>
                 <View className='image-list'>
                   {commentForm.images.map((img, idx) => (
                     <View key={idx} className='image-item'>
-                      <SafeImage 
-                        src={img}
-                        className=''
-                        mode='aspectFill'
-                        defaultSrc={DEFAULT_IMAGE}
-                      />
+                      <SafeImage src={img} className='' mode='aspectFill' defaultSrc={DEFAULT_IMAGE} />
                       <Button className='remove' onClick={() => {
                         const newImages = [...commentForm.images]
                         newImages.splice(idx, 1)
@@ -906,7 +851,7 @@ export default function HotelDetail() {
                     </View>
                   ))}
                 </View>
-              </View>
+              </View> */}
 
               <View className='modal-footer'>
                 <Button className='cancel' onClick={() => setShowCommentModal(false)}>取消</Button>

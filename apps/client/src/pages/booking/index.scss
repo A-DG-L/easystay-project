@@ -35,7 +35,7 @@
     transform: translateY(-50%);
     width: 4px;
     height: 28px;
-    background-color: #ff6600;
+    background-color: #F9BE3E;  // 改为主题色
     border-radius: 2px;
   }
 }
@@ -61,7 +61,7 @@
 
 .room-price {
   font-size: 36px;
-  color: #ff6600;
+  color: #F9BE3E;  // 改为主题色
   font-weight: 600;
   
   &::before {
@@ -103,7 +103,7 @@
   display: block;
   margin-top: 16px;
   font-size: 26px;
-  color: #ff6600;
+  color: #F9BE3E;  // 改为主题色
   text-align: right;
 }
 
@@ -162,7 +162,7 @@
 
 .total-price {
   font-size: 48px;
-  color: #ff6600;
+  color: #F9BE3E;  // 改为主题色
   font-weight: 700;
   
   &::before {
@@ -188,7 +188,7 @@
   width: 100%;
   height: 88px;
   line-height: 88px;
-  background-color: #ff6600;
+  background-color: #F9BE3E;  // 改为主题色
   color: #fff;
   font-size: 34px;
   font-weight: 600;
@@ -215,7 +215,7 @@
     width: 40px;
     height: 40px;
     border: 4px solid #f0f0f0;
-    border-top-color: #ff6600;
+    border-top-color: #F9BE3E;  // 改为主题色
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
   }

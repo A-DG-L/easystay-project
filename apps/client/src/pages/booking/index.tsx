@@ -238,7 +238,7 @@ export default function Booking() {
         // 提示成功
         showModal({
           title: '订单创建成功',
-          content: `订单已创建，共计 ¥${bookingInfo.totalPrice}，请前往订单列表支付`,
+          content: `订单已创建，共计 ${bookingInfo.totalPrice}，请前往订单列表支付`,
           confirmText: '去支付',
           cancelText: '返回首页',
           success: (res) => {
@@ -337,7 +337,7 @@ export default function Booking() {
         <Text className='section-title'>房型信息</Text>
         <View className='room-info'>
           <Text className='room-name'>{roomInfo.name}</Text>
-          <Text className='room-price'>¥{roomInfo.price}/晚</Text>
+          <Text className='room-price'>{roomInfo.price}/晚</Text>
         </View>
       </View>
       
@@ -415,7 +415,7 @@ export default function Booking() {
       <View className='total-section'>
         <View className='total-row'>
           <Text className='total-label'>房费总额</Text>
-          <Text className='total-price'>¥{bookingInfo.totalPrice}</Text>
+          <Text className='total-price'>{bookingInfo.totalPrice}</Text>
         </View>
       </View>
       
