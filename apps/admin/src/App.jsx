@@ -32,6 +32,8 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+
+        <Route path="/" element={<Navigate to="/login" replace />} />
         {/* 公开页面 */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -47,7 +49,7 @@ function App() {
           </PrivateRoute>
         }>
           {/* 默认跳转：访问 / 时，自动判断角色跳转 */}
-          <Route index element={<RoleRedirect />} />
+          {/*<Route index element={<RoleRedirect />} />*/}
           <Route path="dashboard" element={<RoleRedirect />} />
 
           {/* 管理员的子路由 */}
