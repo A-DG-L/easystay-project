@@ -20,6 +20,7 @@ interface HotelItem {
 
 // API基础配置
 const API_BASE_URL = 'http://localhost:3000/api'
+const BASE_URL = API_BASE_URL.replace(/\/api$/, '')
 
 // 获取Token
 const getToken = () => {
@@ -78,6 +79,18 @@ const request = async (options: {
   }
 }
 
+// 将图片路径转换为完整 URL，兼容 /uploads/x 或 uploads/x
+const getFullImageUrl = (url?: string) => {
+  if (!url) return ''
+  if (url.startsWith('http')) return url
+
+  if (url.startsWith('/')) {
+    return `${BASE_URL}${url}`
+  }
+  return `${BASE_URL}/${url}`
+}
+
+// 获取单个酒店详情（通过正式详情接口，保证与详情页一致）
 // 获取单个酒店详情
 const getHotelDetail = async (hotelId: string): Promise<HotelItem> => {
   console.log('正在获取酒店详情, hotelId:', hotelId)
@@ -91,14 +104,16 @@ const getHotelDetail = async (hotelId: string): Promise<HotelItem> => {
     })
     
     console.log('API返回的酒店详情:', data)
-    
+
+    const rawImages: string[] = Array.isArray(data.images) ? data.images : []
+
     return {
       _id: data._id || hotelId,
       name: data.name || '未知酒店',
       address: data.address || '地址未知',
       starLevel: data.starLevel || 0,
-      minPrice: data.minPrice || 0,
-      images: data.images || [],
+      minPrice: typeof data.minPrice === 'number' ? data.minPrice : 0,
+      images: rawImages.length > 0 ? rawImages.map(img => getFullImageUrl(img)) : [],
       viewedAt: new Date().toISOString()
     }
   } catch (error) {
@@ -278,25 +293,24 @@ export default function LikesHistory() {
       console.log('浏览记录接口返回:', historyData)
       
       if (Array.isArray(historyData)) {
-        // 格式化数据 - 根据接口文档，返回的应该是包含 hotelId 对象的数组
-        const formattedHistory = historyData.map((item: any) => {
-          // 从返回的数据中提取酒店信息
-          const hotelInfo = item.hotelId || item
-          
-          return {
-            _id: hotelInfo._id || hotelInfo,
-            name: hotelInfo.name || '酒店',
-            address: hotelInfo.address || '地址未知',
-            starLevel: hotelInfo.starLevel || 0,
-            minPrice: hotelInfo.minPrice || 0,
-            images: hotelInfo.images || [],
-            viewedAt: item.createdAt || item.viewedAt || new Date().toISOString()
-          }
-        })
-        
+        // 从浏览记录中提取酒店 ID（兼容返回 hotelId 对象或直接酒店对象）
+        const hotelIds: string[] = historyData
+          .map((item: any) => {
+            const hotelInfo = item.hotelId || item
+            if (!hotelInfo) return ''
+            if (typeof hotelInfo === 'string') return hotelInfo
+            return hotelInfo._id || ''
+          })
+          .filter((id: string) => !!id)
+
+        console.log('从浏览记录提取的酒店ID:', hotelIds)
+
+        // 使用酒店详情接口拉取最新数据，保证图片和价格与详情页一致
+        const formattedHistory = await getHotelDetails(hotelIds)
+
         console.log('格式化后的浏览记录:', formattedHistory)
         setViewHistory(formattedHistory)
-        
+
         // 同时保存到本地存储作为备份
         Taro.setStorageSync('hotel_view_history', formattedHistory)
       } else {

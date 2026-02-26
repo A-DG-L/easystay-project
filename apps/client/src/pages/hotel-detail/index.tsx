@@ -341,13 +341,18 @@ export default function HotelDetail() {
   const recordHistory = () => {
     const token = Taro.getStorageSync('token')
     if (!token || !hotelId) return
-    
+
+    // 兼容本地已存的是“Bearer xxx”或裸 token 两种情况
+    const authHeader = token.startsWith('Bearer ')
+      ? token
+      : `Bearer ${token}`
+
     // 静默调用，不等待结果，也不处理错误
     Taro.request({
       url: `${BASE_URL}/api/history`,
       method: 'POST',
       header: { 
-        'Authorization': `Bearer ${token}`,
+        'Authorization': authHeader,
         'Content-Type': 'application/json'
       },
       data: { hotelId }
