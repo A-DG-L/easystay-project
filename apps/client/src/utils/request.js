@@ -1,7 +1,11 @@
 // apps/client/src/utils/request.js
 import Taro from '@tarojs/taro';
 
-const BASE_URL = 'http://localhost:3000/api'; // 注意：真机调试时这里不能写 localhost，要写你电脑的局域网 IP (如 192.168.x.x)
+// 后端 API 基础地址
+export const API_BASE_URL = 'http://localhost:3000/api'; // 注意：真机调试时这里不能写 localhost，要写你电脑的局域网 IP (如 192.168.x.x)
+
+// 静态资源基础地址（用于图片等，如 /uploads/xxx.jpg）
+export const STATIC_BASE_URL = API_BASE_URL.replace(/\/?api$/, '');
 
 export default function request(options) {
   const { url, method = 'GET', data } = options;
@@ -11,7 +15,7 @@ export default function request(options) {
 
   return new Promise((resolve, reject) => {
     Taro.request({
-      url: BASE_URL + url,
+      url: API_BASE_URL + url,
       method: method,
       data: data,
       header: {

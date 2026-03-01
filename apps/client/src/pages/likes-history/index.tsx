@@ -217,10 +217,16 @@ export default function LikesHistory() {
     try {
       setLoading(true)
       
-      // 先加载本地收藏
+      // 先加载本地收藏，并规范化图片地址
       const savedCollections = Taro.getStorageSync('hotel_collections') || []
       if (savedCollections.length > 0) {
-        setCollections(savedCollections)
+        const normalizedLocal = savedCollections.map((item: any) => ({
+          ...item,
+          images: Array.isArray(item.images)
+            ? item.images.map((img: string) => getFullImageUrl(img))
+            : []
+        }))
+        setCollections(normalizedLocal)
       }
       
       // 然后尝试从API同步
@@ -237,7 +243,9 @@ export default function LikesHistory() {
             address: item.address || '地址未知',
             starLevel: item.starLevel || 0,
             minPrice: item.minPrice || 0,
-            images: item.images || [],
+            images: Array.isArray(item.images)
+              ? item.images.map((img: string) => getFullImageUrl(img))
+              : [],
             collectedAt: item.createdAt || item.collectedAt || new Date().toISOString()
           }))
           
@@ -628,7 +636,9 @@ export default function LikesHistory() {
               >
                 <Image 
                   className='hotel-image'
-                  src={item.images && item.images.length > 0 ? item.images[0] : 'https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80'}
+                  src={item.images && item.images.length > 0
+                    ? getFullImageUrl(item.images[0])
+                    : 'https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80'}
                   mode='aspectFill'
                   onError={(e: any) => {
                     e.currentTarget.src = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80'

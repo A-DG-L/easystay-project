@@ -1,7 +1,7 @@
 import { View, Text, Swiper, SwiperItem, Image, Picker, Button, Input } from '@tarojs/components'
 import { useLoad, getStorageSync, reLaunch, showToast, navigateTo } from '@tarojs/taro'
 import { useState, useEffect } from 'react'
-import request from '../../utils/request'
+import request, { STATIC_BASE_URL } from '../../utils/request'
 import Calendar from '../../components/calendar'
 import './index.scss'
 
@@ -431,7 +431,10 @@ export default function Index() {
                   hotel.images.length > 0 &&
                   hotel.images[0]
 
-                const imageUrl = hasRealImage ? hotel.images[0] : ''
+                const rawImage = hasRealImage ? hotel.images[0] : ''
+                const imageUrl = rawImage && typeof rawImage === 'string'
+                  ? (rawImage.startsWith('http') ? rawImage : `${STATIC_BASE_URL}${rawImage.startsWith('/') ? '' : '/'}${rawImage}`)
+                  : ''
 
                 return (
                   <SwiperItem key={hotel._id}>
