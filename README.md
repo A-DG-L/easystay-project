@@ -141,7 +141,7 @@ EASYSTAY-PROJECT/
 
 ```bash
 # 克隆项目
-git clone https://github.com/your-repo/easystay.git
+git clone https://github.com/A-DG-L/easystay.git
 cd easystay-project
 
 # 安装依赖
